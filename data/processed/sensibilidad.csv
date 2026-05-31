@@ -1,0 +1,9 @@
+variante,ARI_vs_base,corr_loadings_PC1,n
+Imputación MICE,0.958,1.0,191
+Casos completos (sin imputar),1.0,0.996,135
+RobustScaler (todos),-0.004,0.009,191
+RobustScaler (sin MAC),0.743,0.925,190
+Clustering sobre 2 PCs,0.938,1.0,191
+Clustering sobre 3 PCs,1.0,1.0,191
+Clustering sobre 5 PCs,1.0,1.0,191
+Sin outliers (10 países),0.934,0.982,181

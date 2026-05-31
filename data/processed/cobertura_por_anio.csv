@@ -1,0 +1,18 @@
+code,label,2000,2005,2010,2015,2021,2022,2023,2024
+NY.GDP.PCAP.KD,PBI per capita (US$ const. 2015),0.917,0.935,0.968,0.977,0.959,0.959,0.931,0.885
+NY.GNP.PCAP.PP.KD,INB per capita PPA ($ int. const.),0.535,0.571,0.654,0.696,0.908,0.719,0.7,0.608
+NY.GDP.MKTP.KD.ZG,Crecimiento anual del PBI (%),0.917,0.94,0.968,0.972,0.968,0.963,0.935,0.889
+FP.CPI.TOTL.ZG,Inflacion anual al consumidor (%),0.751,0.816,0.866,0.871,0.82,0.82,0.811,0.802
+SL.UEM.TOTL.ZS,Desempleo (% fuerza laboral),0.862,0.862,0.862,0.862,0.862,0.857,0.848,0.839
+NE.GDI.TOTL.ZS,Formacion bruta de capital (% PBI),0.728,0.756,0.793,0.811,0.802,0.797,0.783,0.719
+NE.EXP.GNFS.ZS,Exportaciones (% PBI),0.756,0.802,0.82,0.848,0.839,0.839,0.797,0.737
+NE.IMP.GNFS.ZS,Importaciones (% PBI),0.756,0.802,0.82,0.848,0.839,0.839,0.797,0.737
+NV.AGR.TOTL.ZS,"Agricultura, valor agregado (% PBI)",0.853,0.871,0.908,0.922,0.908,0.899,0.876,0.797
+NV.IND.TOTL.ZS,"Industria, valor agregado (% PBI)",0.829,0.862,0.912,0.94,0.922,0.908,0.885,0.802
+NV.SRV.TOTL.ZS,"Servicios, valor agregado (% PBI)",0.806,0.839,0.908,0.931,0.922,0.908,0.885,0.802
+SP.URB.TOTL.IN.ZS,Poblacion urbana (% del total),1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0
+SP.DYN.LE00.IN,Esperanza de vida al nacer (anios),1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0
+SE.XPD.TOTL.GD.ZS,Gasto publico en educacion (% PBI),0.548,0.498,0.631,0.756,0.774,0.756,0.558,0.184
+IT.NET.USER.ZS,Personas usando Internet (% poblacion),0.903,0.917,0.926,0.926,0.829,0.839,0.834,0.839
+EN.GHG.CO2.PC.CE.AR5,"Emisiones de CO2 per capita (ton., excl. LULUCF)",0.935,0.935,0.935,0.935,0.935,0.935,0.935,0.935
+SI.POV.GINI,Indice de Gini,0.263,0.373,0.396,0.401,0.373,0.336,0.263,0.115

@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="es" xml:lang="es"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.9.37">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="[Integrantes del grupo] — Lic. en Ciencia de Datos, Universidad Austral">
+
+<title>Patrones de desarrollo de los países: PCA y clustering sobre indicadores del Banco Mundial</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+</style>
+
+
+<script src="informe_borrador_files/libs/clipboard/clipboard.min.js"></script>
+<script src="informe_borrador_files/libs/quarto-html/quarto.js" type="module"></script>
+<script src="informe_borrador_files/libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="informe_borrador_files/libs/quarto-html/popper.min.js"></script>
+<script src="informe_borrador_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="informe_borrador_files/libs/quarto-html/anchor.min.js"></script>
+<link href="informe_borrador_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="informe_borrador_files/libs/quarto-html/quarto-syntax-highlighting-7f8f88aac4f3542376d5c11b86a4c14d.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="informe_borrador_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="informe_borrador_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="informe_borrador_files/libs/bootstrap/bootstrap-efbb37e9afcc02144ebbc7afd12a776f.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+
+
+</head>
+
+<body class="fullcontent quarto-light">
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Patrones de desarrollo de los países: PCA y clustering sobre indicadores del Banco Mundial</h1>
+<p class="subtitle lead">Trabajo Práctico Final — Análisis Multivariado y Descubrimiento de Patrones</p>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Autor/a</div>
+    <div class="quarto-title-meta-contents">
+             <p>[Integrantes del grupo] — Lic. en Ciencia de Datos, Universidad Austral </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">Fecha de publicación</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">31 de diciembre de 2025</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<blockquote class="blockquote">
+<p><strong>⚠️ BORRADOR generado automáticamente.</strong> Pensado para que los integrantes lo <strong>editen, validen y completen</strong> (carátula, nombres, redacción final). Todas las cifras y figuras provienen de correr <code>src/run_all.py</code>. Revisar interpretaciones antes de la entrega.</p>
+</blockquote>
+<hr>
+<section id="carátula" class="level1">
+<h1>Carátula</h1>
+<ul>
+<li><strong>Materia:</strong> Análisis Multivariado y Descubrimiento de Patrones</li>
+<li><strong>Carrera:</strong> Licenciatura en Ciencia de Datos — Universidad Austral</li>
+<li><strong>Trabajo:</strong> Práctico Final — PCA + Análisis de Clustering</li>
+<li><strong>Integrantes:</strong> <em>[completar]</em></li>
+<li><strong>Fecha:</strong> <em>[completar]</em></li>
+<li><strong>Dataset:</strong> World Development Indicators (Banco Mundial), corte 2021 con comparación a 2005.</li>
+</ul>
+<hr>
+</section>
+<section id="introducción" class="level1">
+<h1>1. Introducción</h1>
+<section id="problema-y-objetivo" class="level2">
+<h2 class="anchored" data-anchor-id="problema-y-objetivo">1.1 Problema y objetivo</h2>
+<p>¿Es posible <strong>resumir</strong> el desarrollo socioeconómico de los países con unos pocos ejes interpretables, y <strong>agruparlos</strong> en perfiles de desarrollo a partir de datos objetivos? El interés práctico es doble: (i) entender qué dimensiones estructuran las diferencias entre países y (ii) ver si surgen grupos coherentes y cómo se movieron los países en ~16 años.</p>
+<p>Aplicamos dos técnicas multivariadas complementarias:</p>
+<ol type="1">
+<li><strong>Análisis de Componentes Principales (PCA):</strong> reduce las variables correlacionadas a componentes ortogonales que capturan la mayor variabilidad, para <strong>interpretar</strong> las dimensiones del desarrollo.</li>
+<li><strong>Análisis de Clustering:</strong> agrupa países por similitud para descubrir <strong>perfiles</strong>.</li>
+</ol>
+<p>Elegimos PCA (y no Análisis de Correspondencias) porque los datos son mayormente <strong>numéricos</strong>. Las variables <strong>categóricas</strong> (región y nivel de ingreso del Banco Mundial) se usan de forma <strong>suplementaria/ilustrativa</strong> (no construyen los componentes).</p>
+</section>
+<section id="datos" class="level2">
+<h2 class="anchored" data-anchor-id="datos">1.2 Datos</h2>
+<ul>
+<li><strong>Fuente:</strong> World Development Indicators (WDI, <code>source=2</code>), API pública del Banco Mundial. Se guardó un <em>snapshot</em> crudo y todo el análisis trabaja desde él (reproducibilidad).</li>
+<li><strong>Unidad de análisis:</strong> país (corte transversal anual). Se filtran las <strong>agregaciones</strong> (World, Euro area, grupos de ingreso) quedando <strong>217 países reales</strong>.</li>
+<li><strong>Años:</strong> <strong>2021</strong> (moderno) y <strong>2005</strong> (temprano de referencia). 2005 se eligió como el año más temprano (≥2000) con cobertura adecuada en <em>todas</em> las variables (ver §1.3 y <code>decisiones_metodologicas.md</code>).</li>
+<li><strong>Tamaño:</strong> ≈194 países × 2 años ≪ 10.000 observaciones. ✔</li>
+<li><strong>14 variables numéricas</strong> (≥5 ✔) + <strong>2 categóricas</strong>.</li>
+</ul>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 50%">
+<col style="width: 50%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Dimensión</th>
+<th>Variables numéricas (WDI)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Ingreso / nivel</td>
+<td>PBI per cápita (US$ const. 2015)</td>
+</tr>
+<tr class="even">
+<td>Macro</td>
+<td>Crecimiento del PBI, inflación, desempleo</td>
+</tr>
+<tr class="odd">
+<td>Inversión / comercio</td>
+<td>Formación bruta de capital, exportaciones, importaciones (% PBI)</td>
+</tr>
+<tr class="even">
+<td>Estructura productiva</td>
+<td>Agricultura, industria, servicios (valor agregado, % PBI)</td>
+</tr>
+<tr class="odd">
+<td>Social / desarrollo</td>
+<td>Población urbana (%), esperanza de vida, uso de Internet (%)</td>
+</tr>
+<tr class="even">
+<td>Ambiental</td>
+<td>Emisiones de CO₂ per cápita</td>
+</tr>
+</tbody>
+</table>
+<p>Categóricas (suplementarias): <strong>región</strong> y <strong>nivel de ingreso</strong> del Banco Mundial.</p>
+</section>
+<section id="decisiones-de-datos-resumen" class="level2">
+<h2 class="anchored" data-anchor-id="decisiones-de-datos-resumen">1.3 Decisiones de datos (resumen)</h2>
+<ul>
+<li>Se <strong>descartaron</strong> Gini (cobertura 0,26–0,40), gasto en educación (incomparable en el tiempo) e INB-PPA (redundante con PBI pc y de baja cobertura en 2005).</li>
+<li><strong>Faltantes</strong> tras filtros ≤ 15% por variable → imputación <strong>KNN por año</strong>.</li>
+<li>Países finales: <strong>192 (2005)</strong>, <strong>194 (2021)</strong>, <strong>panel común = 186</strong>.</li>
+</ul>
+<p><em>(El detalle y la justificación estadística de cada decisión están en <code>reports/decisiones_metodologicas.md</code>.)</em></p>
+<hr>
+</section>
+</section>
+<section id="desarrollo" class="level1">
+<h1>2. Desarrollo</h1>
+<section id="análisis-univariado-y-bivariado" class="level2">
+<h2 class="anchored" data-anchor-id="análisis-univariado-y-bivariado">2.1 Análisis univariado y bivariado</h2>
+<section id="univariado-y-transformaciones" class="level3">
+<h3 class="anchored" data-anchor-id="univariado-y-transformaciones">Univariado y transformaciones</h3>
+<p>Antes de transformar se examinó la <strong>distribución y asimetría</strong> de cada variable (Figura 1). Varias presentan fuerte asimetría a derecha y varios órdenes de magnitud (PBI per cápita, CO₂), otras tienen valores negativos (inflación, crecimiento), y otras están acotadas en [0,100] (participaciones sectoriales, urbano, Internet).</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="figures/eda_histogramas_2021.png" class="img-fluid figure-img"></p>
+<figcaption>Figura 1. Distribuciones univariadas (2021).</figcaption>
+</figure>
+</div>
+<p>Decisión <strong>variable por variable</strong> (ver tabla en <code>decisiones_metodologicas.md</code> §5): <strong>log</strong> para PBI pc, <strong>log1p</strong> para CO₂, <strong>Yeo-Johnson</strong> (admite negativos) para inflación, desempleo, exportaciones, importaciones, agricultura e industria; y <strong>sin transformar</strong> las de baja asimetría o saturantes. El orden es <strong>transformar → estandarizar</strong>. Tras transformar, la asimetría queda en |skew| &lt; 0,6 en casi todas.</p>
+</section>
+<section id="bivariado" class="level3">
+<h3 class="anchored" data-anchor-id="bivariado">Bivariado</h3>
+<p>La matriz de correlación (Figura 2) muestra un <strong>bloque de desarrollo</strong> fuertemente correlacionado (PBI pc, esperanza de vida, urbanización, Internet, CO₂; agricultura con signo opuesto) y correlaciones esperables entre exportaciones e importaciones. Esta estructura de correlación es justamente lo que el PCA aprovechará.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="figures/eda_correlacion_2021.png" class="img-fluid figure-img"></p>
+<figcaption>Figura 2. Matriz de correlación (2021).</figcaption>
+</figure>
+</div>
+<p>Las variables clave por <strong>nivel de ingreso</strong> (categórica) ordenan monótonamente los grupos (Figura 3): a mayor ingreso, mayor PBI pc, esperanza de vida e Internet, y menor peso de la agricultura. Esto anticipa que el primer eje del PCA capturará un <strong>gradiente de desarrollo</strong>.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="figures/eda_boxplots_ingreso_2021.png" class="img-fluid figure-img"></p>
+<figcaption>Figura 3. Variables clave por nivel de ingreso (2021).</figcaption>
+</figure>
+</div>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="figures/eda_categoricas_2021.png" class="img-fluid figure-img"></p>
+<figcaption>Figura 4. Composición de la muestra por región y nivel de ingreso.</figcaption>
+</figure>
+</div>
+</section>
+</section>
+<section id="técnica-1-análisis-de-componentes-principales-pca" class="level2">
+<h2 class="anchored" data-anchor-id="técnica-1-análisis-de-componentes-principales-pca">2.2 Técnica 1 — Análisis de Componentes Principales (PCA)</h2>
+<section id="supuestos-y-preparación" class="level3">
+<h3 class="anchored" data-anchor-id="supuestos-y-preparación">Supuestos y preparación</h3>
+<p>PCA sobre la <strong>matriz de correlación</strong> (variables <strong>estandarizadas</strong>: las escalas son incomparables —dólares, %, años, toneladas—). Sin estandarizar, el PBI pc dominaría artificialmente.</p>
+</section>
+<section id="cuántos-componentes-retener" class="level3">
+<h3 class="anchored" data-anchor-id="cuántos-componentes-retener">¿Cuántos componentes retener?</h3>
+<p>No usamos un único criterio. El <strong>análisis paralelo de Horn</strong> (estándar de oro: compara los autovalores reales contra los de datos aleatorios de la misma dimensión) retiene <strong>3 componentes</strong>; Kaiser sugiere 4 y el 80% de varianza, 6 (Figura 5). Los criterios <strong>convergen en 3–4</strong>; adoptamos <strong>3</strong> para la interpretación (64,4% de la varianza).</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="figures/pca_scree_2021.png" class="img-fluid figure-img"></p>
+<figcaption>Figura 5. Scree plot con análisis paralelo de Horn y varianza acumulada.</figcaption>
+</figure>
+</div>
+<blockquote class="blockquote">
+<p>Distinguimos explícitamente: <strong>3 componentes para analizar/clusterizar</strong> (Horn) y <strong>2 componentes solo para visualizar</strong> (los gráficos PC1–PC2). No se mezclan.</p>
+</blockquote>
+</section>
+<section id="interpretación-de-los-ejes-en-términos-del-problema" class="level3">
+<h3 class="anchored" data-anchor-id="interpretación-de-los-ejes-en-términos-del-problema">Interpretación de los ejes (en términos del problema)</h3>
+<p>Cargas como <strong>correlación variable–componente</strong>:</p>
+<ul>
+<li><strong>PC1 (41,6%) — gradiente de desarrollo.</strong> Positivo: PBI pc (0,94), Internet (0,90), esperanza de vida (0,86), CO₂ (0,80), urbanización (0,76), servicios (0,66). Negativo: <strong>agricultura (−0,90)</strong>. Es el eje “país rico, urbano, conectado y de servicios” vs “país agrario y de menor ingreso”.</li>
+<li><strong>PC2 (12,9%) — estructura productiva.</strong> Positivo: industria (0,86), formación de capital (0,46). Negativo: servicios (−0,62), desempleo (−0,44). Separa economías <strong>industriales/extractivas</strong> de economías de <strong>servicios</strong>, con independencia del nivel de desarrollo.</li>
+<li><strong>PC3 (9,8%) — apertura comercial / estabilidad macro.</strong> Positivo: importaciones (0,63), exportaciones (0,49). Negativo: inflación (−0,50).</li>
+</ul>
+<p>El <strong>círculo de correlaciones</strong> (Figura 6) y el <strong>biplot</strong> coloreado por nivel de ingreso (Figura 7) confirman la lectura: PC1 separa nítidamente los niveles de ingreso del Banco Mundial (validación con la categórica ilustrativa).</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="figures/pca_circulo_correlaciones_2021.png" class="img-fluid figure-img"></p>
+<figcaption>Figura 6. Círculo de correlaciones (PC1–PC2).</figcaption>
+</figure>
+</div>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="figures/pca_biplot_ingreso_2021.png" class="img-fluid figure-img"></p>
+<figcaption>Figura 7. Biplot PCA coloreado por nivel de ingreso (2021).</figcaption>
+</figure>
+</div>
+</section>
+</section>
+<section id="técnica-2-análisis-de-clustering" class="level2">
+<h2 class="anchored" data-anchor-id="técnica-2-análisis-de-clustering">2.3 Técnica 2 — Análisis de Clustering</h2>
+<section id="clusterizar-sobre-las-variables-o-sobre-los-componentes" class="level3">
+<h3 class="anchored" data-anchor-id="clusterizar-sobre-las-variables-o-sobre-los-componentes">¿Clusterizar sobre las variables o sobre los componentes?</h3>
+<p>Con ~14 variables <strong>no</strong> estamos en alta dimensión. Clusterizar sobre <strong>todas las variables</strong> estandarizadas es honesto y evita el riesgo del <em>tandem analysis</em> (reducir a pocos componentes antes de clusterizar puede descartar estructura de grupos, ya que PCA maximiza varianza y no separación). Por eso:</p>
+<ul>
+<li><strong>Partición principal: k-means sobre las 14 variables completas.</strong></li>
+<li><strong>Comparación: k-means sobre los 3 componentes de Horn</strong>, midiendo el acuerdo (ARI).</li>
+</ul>
+<p><strong>Resultado clave:</strong> ARI(14 vars vs 3 PCs) = <strong>0,979</strong> en k=2 — las particiones son casi idénticas. Aquí la estructura de grupos sí vive en los componentes de alta varianza, de modo que el PCA <strong>no</strong> sesga la partición; pero esto se <strong>demostró</strong>, no se asumió. (El silhouette sube de 0,264 con 14 variables a 0,394 con 3 PCs: el PCA “limpia” ruido y la separación <em>se ve</em> mejor, aunque la partición es la misma.)</p>
+</section>
+<section id="algoritmos-selección-de-k-y-estabilidad" class="level3">
+<h3 class="anchored" data-anchor-id="algoritmos-selección-de-k-y-estabilidad">Algoritmos, selección de k y estabilidad</h3>
+<p>Usamos <strong>k-means</strong> y <strong>Ward</strong> (jerárquico). El número de clusters se decide por <strong>consenso de métricas</strong> (Figura 8) + <strong>estabilidad bootstrap</strong> (criterio de Hennig):</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 50%">
+<col style="width: 50%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Criterio</th>
+<th>Indica</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Silhouette, Calinski-Harabasz, Davies-Bouldin</td>
+<td><strong>k = 2</strong></td>
+</tr>
+<tr class="even">
+<td>Gap statistic</td>
+<td>k = 3 (gap monótono creciente → estructura tipo <em>continuo</em>)</td>
+</tr>
+<tr class="odd">
+<td>Estabilidad (Jaccard)</td>
+<td>k=2: 0,96/0,97 (muy estable); k=3: 0,77–0,90 (estable); k=4: 0,44 (se disuelve)</td>
+</tr>
+<tr class="even">
+<td>ARI k-means vs Ward</td>
+<td>0,785 (k=2); 0,493 (k=3)</td>
+</tr>
+</tbody>
+</table>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="figures/clust_metricas_k_2021.png" class="img-fluid figure-img"></p>
+<figcaption>Figura 8. Métricas internas para elegir k.</figcaption>
+</figure>
+</div>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="figures/clust_dendrograma_2021.png" class="img-fluid figure-img"></p>
+<figcaption>Figura 9. Dendrograma (Ward) sobre las 14 variables.</figcaption>
+</figure>
+</div>
+<p><strong>Decisión:</strong> <strong>k = 2 como partición principal</strong> (la más robusta, estable y concordante entre algoritmos), con <strong>k = 3 como vista complementaria</strong> (estable, respaldada por gap; recupera un gradiente bajo/emergente/desarrollado).</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="figures/clust_silhouette_k2_2021.png" class="img-fluid figure-img"></p>
+<figcaption>Figura 10. Diagrama de silhouette (k=2).</figcaption>
+</figure>
+</div>
+</section>
+<section id="supuestos-de-k-means-y-alternativas" class="level3">
+<h3 class="anchored" data-anchor-id="supuestos-de-k-means-y-alternativas">Supuestos de k-means y alternativas</h3>
+<p>k-means asume clusters esféricos de tamaño similar. Probamos alternativas: <strong>GMM</strong> (elípticos) coincide moderadamente con k-means (ARI 0,628), y <strong>HDBSCAN</strong> (densidad) marca <strong>71,6% de los países como ruido</strong> con solo 2 núcleos densos. Esto es evidencia <strong>honesta</strong> de que el desarrollo es un <strong>continuo</strong> (el gradiente PC1) más que grumos densos naturales: el clustering provee una <strong>macro-separación</strong>, <strong>no</strong> una taxonomía fina. Por eso el silhouette es <strong>moderado</strong>.</p>
+</section>
+<section id="perfil-de-los-clusters-k2-en-términos-del-problema" class="level3">
+<h3 class="anchored" data-anchor-id="perfil-de-los-clusters-k2-en-términos-del-problema">Perfil de los clusters (k=2, en términos del problema)</h3>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="figures/clust_pca_k2_2021.png" class="img-fluid figure-img"></p>
+<figcaption>Figura 11. Clusters (k=2) proyectados sobre PC1–PC2.</figcaption>
+</figure>
+</div>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 27%">
+<col style="width: 36%">
+<col style="width: 36%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Variable (mediana)</th>
+<th style="text-align: right;">Cluster 0 — <em>en desarrollo</em> (75 países)</th>
+<th style="text-align: right;">Cluster 1 — <em>desarrollado</em> (119)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>PBI per cápita (US$ 2015)</td>
+<td style="text-align: right;">1.444</td>
+<td style="text-align: right;">15.395</td>
+</tr>
+<tr class="even">
+<td>Esperanza de vida (años)</td>
+<td style="text-align: right;">64,9</td>
+<td style="text-align: right;">74,9</td>
+</tr>
+<tr class="odd">
+<td>Población urbana (%)</td>
+<td style="text-align: right;">40,7</td>
+<td style="text-align: right;">73,4</td>
+</tr>
+<tr class="even">
+<td>Uso de Internet (%)</td>
+<td style="text-align: right;">36,7</td>
+<td style="text-align: right;">84,4</td>
+</tr>
+<tr class="odd">
+<td>Agricultura (% PBI)</td>
+<td style="text-align: right;">19,7</td>
+<td style="text-align: right;">3,3</td>
+</tr>
+<tr class="even">
+<td>CO₂ per cápita (t)</td>
+<td style="text-align: right;">0,6</td>
+<td style="text-align: right;">4,6</td>
+</tr>
+<tr class="odd">
+<td>Exportaciones (% PBI)</td>
+<td style="text-align: right;">21,4</td>
+<td style="text-align: right;">42,6</td>
+</tr>
+</tbody>
+</table>
+<p>El <strong>cluster 0</strong> reúne economías de menor ingreso, más agrarias, menos urbanas y conectadas; el <strong>cluster 1</strong>, economías de mayor ingreso, urbanas, de servicios y más integradas al comercio.</p>
+</section>
+<section id="validación-con-las-categóricas-suplementarias" class="level3">
+<h3 class="anchored" data-anchor-id="validación-con-las-categóricas-suplementarias">Validación con las categóricas (suplementarias)</h3>
+<p>La tabla cruzada cluster × nivel de ingreso da <strong>χ² = 135,8 (p ≈ 2·10⁻²⁸)</strong> en k=2 y <strong>χ² = 214,6 (p ≈ 5·10⁻⁴²)</strong> en k=3: los clusters <strong>coinciden fuertemente</strong> con la clasificación oficial de ingreso del Banco Mundial. Las <strong>excepciones</strong> son informativas:</p>
+<ul>
+<li><em>Ingreso medio-alto pero perfil “en desarrollo”</em> (cluster 0): Indonesia, Guatemala, Paraguay, Fiji, Moldova y varias islas del Pacífico — economías más agrarias / menos urbanizadas de lo que sugiere su ingreso.</li>
+<li><em>Ingreso medio-bajo pero perfil “desarrollado”</em> (cluster 1): Vietnam, Marruecos, Túnez, Jordania, Líbano — más urbanizadas/conectadas/de servicios que su par de ingreso.</li>
+</ul>
+</section>
+</section>
+<section id="comparación-temporal-2005-vs-2021" class="level2">
+<h2 class="anchored" data-anchor-id="comparación-temporal-2005-vs-2021">2.4 Comparación temporal 2005 vs 2021</h2>
+<p>Para comparar correctamente, ambos años viven en un <strong>espacio común</strong>: se apilan los dos años, se deciden las transformaciones sobre la distribución combinada y se ajustan <strong>un</strong> scaler y <strong>un</strong> PCA sobre los datos combinados (imputación siempre <strong>por año</strong>). No se ajusta un PCA por año para comparar coordenadas (sería inválido). El modelo común reproduce el análisis principal de 2021 (ARI 0,959).</p>
+<p><strong>Trayectorias (Figura 12).</strong> El movimiento medio en PC1 es <strong>+0,83</strong>: <strong>casi todos los países avanzaron</strong> en el gradiente de desarrollo (progreso global en esperanza de vida, conectividad y urbanización). Mayores avances: <strong>Ruanda, Vietnam, China, Camboya, Turquía, Maldivas</strong>; retrocesos: <strong>Sudán, Venezuela, Siria</strong> (conflicto/crisis).</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="figures/compare_trayectorias.png" class="img-fluid figure-img"></p>
+<figcaption>Figura 12. Trayectorias 2005→2021 en el espacio PCA común.</figcaption>
+</figure>
+</div>
+<p><strong>Transiciones de cluster (Figura 13).</strong> <strong>28 países “graduaron”</strong> de menos a más desarrollado (Albania, Brasil, China, Georgia, Rumania, Turquía, Vietnam, …) y solo <strong>Venezuela</strong> retrocedió.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="figures/compare_transiciones.png" class="img-fluid figure-img"></p>
+<figcaption>Figura 13. Matriz de transición de clusters 2005→2021.</figcaption>
+</figure>
+</div>
+<p><strong>Estabilidad de la estructura (Figura 14).</strong> La congruencia de Tucker de las cargas de PC1 entre 2005 y 2021 es <strong>0,946</strong>: el gradiente de desarrollo es el <strong>mismo eje</strong> a ~16 años. La <strong>agricultura (−0,90)</strong> es el marcador más estable; <strong>exportaciones e importaciones ganaron</strong> peso (mayor integración comercial); <strong>formación de capital e industria perdieron</strong> peso. El <strong>crecimiento del PBI</strong> cambió de signo, atribuible a la <strong>idiosincrasia del rebote post-COVID de 2021</strong> (a interpretar con cautela).</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="figures/compare_loadings_pc1.png" class="img-fluid figure-img"></p>
+<figcaption>Figura 14. Estabilidad de las cargas de PC1 por año.</figcaption>
+</figure>
+</div>
+</section>
+<section id="análisis-de-sensibilidad" class="level2">
+<h2 class="anchored" data-anchor-id="análisis-de-sensibilidad">2.5 Análisis de sensibilidad</h2>
+<p>Las conclusiones son <strong>robustas</strong> a las decisiones metodológicas (ARI de la partición k=2 vs línea base = Standard + KNN + 14 vars):</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 27%">
+<col style="width: 36%">
+<col style="width: 36%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Variante</th>
+<th style="text-align: right;">ARI vs base</th>
+<th style="text-align: right;">Corr. cargas PC1</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Imputación MICE</td>
+<td style="text-align: right;">0,979</td>
+<td style="text-align: right;">1,000</td>
+</tr>
+<tr class="even">
+<td>Casos completos (sin imputar)</td>
+<td style="text-align: right;">0,972</td>
+<td style="text-align: right;">0,997</td>
+</tr>
+<tr class="odd">
+<td>RobustScaler</td>
+<td style="text-align: right;">0,822</td>
+<td style="text-align: right;">0,953</td>
+</tr>
+<tr class="even">
+<td>Clustering sobre 2 / 3 / 5 PCs</td>
+<td style="text-align: right;">0,979 / 0,979 / 1,000</td>
+<td style="text-align: right;">1,000</td>
+</tr>
+<tr class="odd">
+<td>Sin 10 outliers (re-export hubs, petro-estados, conflictos)</td>
+<td style="text-align: right;">0,957</td>
+<td style="text-align: right;">0,999</td>
+</tr>
+</tbody>
+</table>
+<p>Ni la imputación, ni el escalado, ni los outliers, ni la cantidad de componentes <strong>dirigen</strong> los resultados.</p>
+<hr>
+</section>
+</section>
+<section id="conclusiones" class="level1">
+<h1>3. Conclusiones</h1>
+<ol type="1">
+<li>El desarrollo de los países se resume bien en <strong>un eje dominante</strong> (PC1, 42% de la varianza): un <strong>gradiente de desarrollo</strong> (ingreso, salud, urbanización, conectividad vs peso agrario). Un segundo eje captura la <strong>estructura productiva</strong> (industria vs servicios) y un tercero la <strong>apertura/estabilidad macro</strong>.</li>
+<li>El clustering revela una <strong>macro-separación robusta en dos grupos</strong> (desarrollado / en desarrollo), muy alineada con la clasificación de ingreso del Banco Mundial pero con excepciones informativas. <strong>No</strong> es una taxonomía fina: el desarrollo es esencialmente un <strong>continuo</strong> (silhouette moderado; HDBSCAN ve un continuo).</li>
+<li>Entre <strong>2005 y 2021</strong> casi todos los países <strong>avanzaron</strong> en el gradiente; <strong>28 graduaron</strong> de grupo y solo <strong>Venezuela</strong> retrocedió. La <strong>estructura</strong> del desarrollo es muy <strong>estable</strong> (congruencia de PC1 = 0,95).</li>
+<li>Metodológicamente: clusterizar sobre las <strong>variables completas</strong> y <strong>comparar</strong> contra los componentes evita el sesgo del <em>tandem analysis</em>; aquí ambos coinciden (ARI 0,98), pero se demostró en vez de asumirse.</li>
+</ol>
+<section id="limitaciones" class="level2">
+<h2 class="anchored" data-anchor-id="limitaciones">Limitaciones</h2>
+<ul>
+<li>Corte transversal: <strong>sin inferencia causal</strong>.</li>
+<li>El clustering es una <strong>macro-separación</strong>, no una tipología fina (lo decimos explícitamente).</li>
+<li>Imputación (≤15%) y outliers: la sensibilidad muestra que no afectan las conclusiones.</li>
+<li>Cambios de definición/cobertura de WDI (p.&nbsp;ej. la serie de CO₂): documentados.</li>
+</ul>
+<hr>
+</section>
+</section>
+<section id="apéndice-opcional" class="level1">
+<h1>Apéndice (opcional)</h1>
+<ul>
+<li><strong>A1.</strong> Cobertura por variable y año (<code>data/processed/cobertura_por_anio.csv</code>).</li>
+<li><strong>A2.</strong> Asimetría antes/después de transformar (<code>skewness_antes_despues.csv</code>).</li>
+<li><strong>A3.</strong> Autovalores y cargas completas del PCA (<code>pca_autovalores_2021.csv</code>, <code>pca_loadings_2021.csv</code>).</li>
+<li><strong>A4.</strong> Métricas de selección de k, estabilidad y perfilado completo (<code>clustering_resultados_2021.json</code>, <code>perfil_medianas_k*_2021.csv</code>).</li>
+<li><strong>A5.</strong> Trayectorias y transiciones (<code>trayectorias.csv</code>, <code>transiciones_cluster.csv</code>).</li>
+<li><strong>A6.</strong> Tabla de sensibilidad (<code>sensibilidad.csv</code>).</li>
+<li><strong>A7.</strong> Registro completo de decisiones (<code>reports/decisiones_metodologicas.md</code>).</li>
+</ul>
+</section>
+
+</main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copiado");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copiado");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

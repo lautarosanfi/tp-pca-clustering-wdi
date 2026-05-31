@@ -1,0 +1,64 @@
+{
+  "tabla": [
+    {
+      "variante": "Imputación MICE",
+      "ARI_vs_base": 0.958,
+      "corr_loadings_PC1": 1.0,
+      "n": 191
+    },
+    {
+      "variante": "Casos completos (sin imputar)",
+      "ARI_vs_base": 1.0,
+      "corr_loadings_PC1": 0.996,
+      "n": 135
+    },
+    {
+      "variante": "RobustScaler (todos)",
+      "ARI_vs_base": -0.004,
+      "corr_loadings_PC1": 0.009,
+      "n": 191
+    },
+    {
+      "variante": "RobustScaler (sin MAC)",
+      "ARI_vs_base": 0.743,
+      "corr_loadings_PC1": 0.925,
+      "n": 190
+    },
+    {
+      "variante": "Clustering sobre 2 PCs",
+      "ARI_vs_base": 0.938,
+      "corr_loadings_PC1": 1.0,
+      "n": 191
+    },
+    {
+      "variante": "Clustering sobre 3 PCs",
+      "ARI_vs_base": 1.0,
+      "corr_loadings_PC1": 1.0,
+      "n": 191
+    },
+    {
+      "variante": "Clustering sobre 5 PCs",
+      "ARI_vs_base": 1.0,
+      "corr_loadings_PC1": 1.0,
+      "n": 191
+    },
+    {
+      "variante": "Sin outliers (10 países)",
+      "ARI_vs_base": 0.934,
+      "corr_loadings_PC1": 0.982,
+      "n": 181
+    }
+  ],
+  "outliers": [
+    "AFG",
+    "ARG",
+    "DJI",
+    "GUY",
+    "LBN",
+    "LBY",
+    "MAC",
+    "PLW",
+    "SDN",
+    "TLS"
+  ]
+}

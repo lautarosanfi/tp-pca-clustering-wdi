@@ -1,0 +1,15 @@
+variable,transformacion,skew_antes,skew_despues
+NY.GDP.PCAP.KD,log,2.175,-0.004
+NY.GDP.MKTP.KD.ZG,yeojohnson,0.646,0.954
+FP.CPI.TOTL.ZG,yeojohnson,9.467,-0.167
+SL.UEM.TOTL.ZS,yeojohnson,1.696,0.0
+NE.GDI.TOTL.ZS,none,-0.302,-0.302
+NE.EXP.GNFS.ZS,yeojohnson,2.385,0.008
+NE.IMP.GNFS.ZS,yeojohnson,2.104,0.038
+NV.AGR.TOTL.ZS,yeojohnson,1.157,-0.027
+NV.IND.TOTL.ZS,yeojohnson,0.977,0.022
+NV.SRV.TOTL.ZS,none,0.155,0.155
+SP.URB.TOTL.IN.ZS,none,-0.165,-0.165
+SP.DYN.LE00.IN,none,-0.421,-0.421
+IT.NET.USER.ZS,none,-0.795,-0.795
+EN.GHG.CO2.PC.CE.AR5,log1p,5.36,0.548

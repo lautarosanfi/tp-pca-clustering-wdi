@@ -1,0 +1,25 @@
+{
+  "download_date_range": "1990:2024",
+  "n_indicators": 17,
+  "indicators": {
+    "NY.GDP.PCAP.KD": "PBI per capita (US$ const. 2015)",
+    "NY.GNP.PCAP.PP.KD": "INB per capita PPA ($ int. const.)",
+    "NY.GDP.MKTP.KD.ZG": "Crecimiento anual del PBI (%)",
+    "FP.CPI.TOTL.ZG": "Inflacion anual al consumidor (%)",
+    "SL.UEM.TOTL.ZS": "Desempleo (% fuerza laboral)",
+    "NE.GDI.TOTL.ZS": "Formacion bruta de capital (% PBI)",
+    "NE.EXP.GNFS.ZS": "Exportaciones (% PBI)",
+    "NE.IMP.GNFS.ZS": "Importaciones (% PBI)",
+    "NV.AGR.TOTL.ZS": "Agricultura, valor agregado (% PBI)",
+    "NV.IND.TOTL.ZS": "Industria, valor agregado (% PBI)",
+    "NV.SRV.TOTL.ZS": "Servicios, valor agregado (% PBI)",
+    "SP.URB.TOTL.IN.ZS": "Poblacion urbana (% del total)",
+    "SP.DYN.LE00.IN": "Esperanza de vida al nacer (anios)",
+    "SE.XPD.TOTL.GD.ZS": "Gasto publico en educacion (% PBI)",
+    "IT.NET.USER.ZS": "Personas usando Internet (% poblacion)",
+    "EN.GHG.CO2.PC.CE.AR5": "Emisiones de CO2 per capita (ton., excl. LULUCF)",
+    "SI.POV.GINI": "Indice de Gini"
+  },
+  "n_rows_long": 158270,
+  "n_countries_meta_real": 217
+}
