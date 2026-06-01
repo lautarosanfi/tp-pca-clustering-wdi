@@ -162,36 +162,46 @@ def _cluster_style(k):
 
 
 def plot_metrics(mk, gap_df, fname, k_opt=2):
+    LINE = T.AZUL        # un único color de curva en todos los paneles
+    MARK = T.BERMELLON   # color del resaltado de k elegido
     fig, axes = plt.subplots(2, 3, figsize=(16, 9))
     specs = [
-        (axes[0, 0], "inercia", "Codo (inercia)", T.LAVANDA, mk),
-        (axes[0, 1], "silhouette", "Silhouette (↑ mejor)", T.CORAL, mk),
-        (axes[0, 2], "calinski_harabasz", "Calinski-Harabasz (↑ mejor)", T.VERDE_AGUA, mk),
-        (axes[1, 0], "davies_bouldin", "Davies-Bouldin (↓ mejor)", T.ROSA, mk),
+        (axes[0, 0], mk["k"], mk["inercia"], "Codo (inercia)"),
+        (axes[0, 1], mk["k"], mk["silhouette"], "Silhouette (↑ mejor)"),
+        (axes[0, 2], mk["k"], mk["calinski_harabasz"], "Calinski-Harabasz (↑ mejor)"),
+        (axes[1, 0], mk["k"], mk["davies_bouldin"], "Davies-Bouldin (↓ mejor)"),
+        (axes[1, 1], gap_df["k"], gap_df["gap"], "Gap statistic (↑ mejor)"),
     ]
-    for ax, col, tit, color, src in specs:
-        ax.plot(src["k"], src[col], "o-", color=color, lw=2, ms=6)
-        yo = src.loc[src["k"] == k_opt, col]
-        if len(yo):
-            ax.scatter([k_opt], yo, s=140, color=T.NEGRO, zorder=5,
-                       edgecolors="white", lw=1.5, label=f"k = {k_opt} (elegido)")
-        ax.set_title(tit); ax.set_xlabel("k"); ax.legend(fontsize=8)
-    axes[1, 1].errorbar(gap_df["k"], gap_df["gap"], yerr=gap_df["sk"], fmt="o-",
-                        color=T.ARENA, lw=2, ms=6)
-    axes[1, 1].set_title("Gap statistic (↑ mejor)"); axes[1, 1].set_xlabel("k")
+    for ax, xk, yv, tit in specs:
+        ax.plot(xk, yv, "o-", color=LINE, lw=2, ms=6, zorder=3)
+        ax.axvline(k_opt, color=MARK, ls="--", lw=1.6, zorder=2)
+        ax.set_title(tit); ax.set_xlabel("k")
+    # leyenda única (línea de k elegido)
     axes[1, 2].axis("off")
+    axes[1, 2].plot([], [], color=MARK, ls="--", lw=1.6, label=f"k = {k_opt} (elegido)")
+    axes[1, 2].plot([], [], "o-", color=LINE, lw=2, label="Valor de la métrica")
+    axes[1, 2].legend(loc="center", fontsize=11)
     fig.suptitle("Selección del número de conglomerados k — criterios internos", fontsize=14)
     fig.tight_layout(rect=[0, 0, 1, 0.97])
     fig.savefig(config.FIGURES / fname)
     plt.close(fig)
 
 
-def plot_dendrogram(X, fname, year=config.YEAR_MODERN):
+def plot_dendrogram(X, fname, year=config.YEAR_MODERN, k=2):
+    """Dendrograma de Ward con el corte que produce exactamente `k` grupos."""
     Z = linkage(X, method="ward")
-    set_link_color_palette([T.CORAL, T.VERDE_AGUA, T.LAVANDA, T.ROSA])
+    # umbral entre las dos últimas fusiones -> k=2 colores; para k general,
+    # entre la (k-1)-ésima y la k-ésima mayor altura de fusión.
+    thr = (Z[-(k - 1), 2] + Z[-k, 2]) / 2 if k >= 2 else Z[-1, 2] * 1.1
+    palette = [T.CLUSTER2_COLORS[0], T.CLUSTER2_COLORS[1]] if k == 2 \
+        else list(T.CLUSTER3_COLORS.values())
+    set_link_color_palette(palette)
     fig, ax = plt.subplots(figsize=(14, 6))
-    dendrogram(Z, ax=ax, no_labels=True, color_threshold=Z[-1, 2] * 0.6,
+    dendrogram(Z, ax=ax, no_labels=True, color_threshold=thr,
                above_threshold_color=T.GRIS_MEDIO)
+    ax.axhline(thr, color=T.NEGRO, ls=":", lw=1.2)
+    ax.text(ax.get_xlim()[1] * 0.99, thr, f" corte k={k}", va="bottom", ha="right",
+            fontsize=9, color=T.NEGRO)
     ax.set_title(f"Dendrograma (Ward) — variables completas, {year}")
     ax.set_xlabel("Países")
     ax.set_ylabel("Distancia de fusión")

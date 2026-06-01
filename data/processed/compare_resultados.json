@@ -6,12 +6,16 @@
     0.12564592933460653,
     0.10797832544420308
   ],
-  "ari_main_modern": 0.9789567766558686,
-  "mov_medio_pc1": 0.9582151984734335,
+  "ari_tier_modern_vs_main": 1.0,
+  "pc1_medio_comun_early": -0.4675263143818101,
+  "pc1_medio_comun_modern": 0.4699740961325001,
+  "desarrollados_relativo_early": 107,
+  "desarrollados_relativo_modern": 121,
+  "ascendieron_tier": 15,
+  "descendieron_tier": 1,
   "congruencia_pc1": 0.9620667418100752,
   "corr_pc1": 0.9457453663905553,
   "evr_pc1_early": 0.4448943679299487,
   "evr_pc1_modern": 0.361569889165348,
-  "n_cambian_cluster": 40,
-  "dPC1_total_descomp": 0.9582151984734336
+  "dPC1_secular_total": 0.9582151984734336
 }

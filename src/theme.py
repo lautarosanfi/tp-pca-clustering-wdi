@@ -1,61 +1,62 @@
 """
 Tema visual centralizado para todas las figuras del proyecto.
 
-Paleta "Suave Set2" (ColorBrewer): pastel pero legible, buen equilibrio entre
-baja fatiga visual y contraste/accesibilidad. Toda figura del pipeline importa
-este módulo y llama `apply_theme()` una vez, de modo que el estilo sea
-consistente en `reports/figures/`.
+Paletas elegidas según la investigación en visualización de datos:
+  - CATEGÓRICA: Okabe-Ito (Wong, Nature Methods 2011). Colorblind-safe y
+    perceptualmente distinguible; evita depender de un solo tono.
+  - ORDINAL (nivel de ingreso): cividis (Nuñez et al. 2018), perceptualmente
+    uniforme y optimizada para daltonismo; va de azul oscuro a amarillo (sin verde).
+  - DIVERGENTE (correlaciones, cargas): RdBu de ColorBrewer (Brewer), azul ↔ rojo.
+
+Toda figura importa este módulo y llama `apply_theme()` una vez.
 """
-from matplotlib import rcParams
-from matplotlib.colors import LinearSegmentedColormap
+import numpy as np
+from matplotlib import rcParams, cm
 
-# ── Paleta categórica (ColorBrewer Set2) ──────────────────────────────────── #
-VERDE_AGUA = "#66C2A5"
-CORAL      = "#FC8D62"
-LAVANDA    = "#8DA0CB"
-ROSA       = "#E78AC3"
-LIMA       = "#A6D854"
-AMARILLO   = "#FFD92F"
-ARENA      = "#E5C494"
-GRIS       = "#B3B3B3"
+# ── Paleta categórica Okabe-Ito ───────────────────────────────────────────── #
+NARANJA   = "#E69F00"  # orange
+CELESTE   = "#56B4E9"  # sky blue
+VERDE     = "#009E73"  # bluish green
+AMARILLO  = "#F0E442"  # yellow
+AZUL      = "#0072B2"  # blue
+BERMELLON = "#D55E00"  # vermillion
+PURPURA   = "#CC79A7"  # reddish purple
+GRIS      = "#999999"
 
-CATEGORICAL = [VERDE_AGUA, CORAL, LAVANDA, ROSA, LIMA, AMARILLO, ARENA, GRIS]
+CATEGORICAL = [AZUL, BERMELLON, VERDE, NARANJA, CELESTE, PURPURA, AMARILLO, GRIS]
 
 # ── Neutros ───────────────────────────────────────────────────────────────── #
-NEGRO      = "#33373B"
-GRIS_MEDIO = "#9AA0A6"
-GRIS_CLARO = "#ECEFF1"
-NEUTRO     = "#F5F5F5"
+NEGRO      = "#222222"
+GRIS_MEDIO = "#8C8C8C"
+GRIS_CLARO = "#E8E8E8"
+NEUTRO     = "#F7F7F7"
 
-# ── Diverging (correlaciones y cargas +/-) ────────────────────────────────── #
-# Coral (negativo) ── neutro ── teal (positivo). Versión algo más profunda que
-# la categórica para que el texto sobre celdas tenga contraste.
-DIV_NEG = "#D9694A"   # coral profundo
-DIV_POS = "#3C8E7D"   # teal profundo
-POS_FILL = VERDE_AGUA  # relleno de barras positivas
-NEG_FILL = CORAL       # relleno de barras negativas
+# ── Divergente (correlaciones / cargas +/-) ──────────────────────────────── #
+DIVERGING = cm.get_cmap("RdBu")   # 0 = rojo (negativo), 1 = azul (positivo)
+DIV_POS = AZUL
+DIV_NEG = BERMELLON
+POS_FILL = AZUL
+NEG_FILL = BERMELLON
 
-DIVERGING = LinearSegmentedColormap.from_list(
-    "set2_div", [DIV_NEG, NEUTRO, DIV_POS]
-)
-
-# ── Conglomerados ─────────────────────────────────────────────────────────── #
-# Orden por PC1: 0 = menos desarrollado, etc.
-CLUSTER2_COLORS = {0: CORAL, 1: VERDE_AGUA}
+# ── Conglomerados (cualitativo, ordenado por PC1) ─────────────────────────── #
+CLUSTER2_COLORS = {0: BERMELLON, 1: AZUL}
 CLUSTER2_LABELS = {0: "En desarrollo", 1: "Desarrollado"}
-CLUSTER3_COLORS = {0: CORAL, 1: LAVANDA, 2: VERDE_AGUA}
+CLUSTER3_COLORS = {0: BERMELLON, 1: NARANJA, 2: AZUL}
 CLUSTER3_LABELS = {0: "Bajo desarrollo", 1: "Emergente", 2: "Desarrollado"}
 
-# ── Nivel de ingreso (ORDINAL → rampa secuencial teal) ────────────────────── #
+# ── Nivel de ingreso (ORDINAL → cividis) ──────────────────────────────────── #
 INCOME_ORDER = ["Low income", "Lower middle income",
                 "Upper middle income", "High income"]
-INCOME_COLORS = {
-    "Low income":          "#CDE7DF",
-    "Lower middle income": "#94CFC0",
-    "Upper middle income": "#56A593",
-    "High income":         "#2A7563",
-    "Not classified":      GRIS,
-}
+_civ = cm.get_cmap("cividis")
+_civ_pts = [_civ(t) for t in (0.08, 0.40, 0.66, 0.95)]
+
+
+def _to_hex(rgba):
+    return "#%02x%02x%02x" % tuple(int(round(c * 255)) for c in rgba[:3])
+
+
+INCOME_COLORS = {lv: _to_hex(c) for lv, c in zip(INCOME_ORDER, _civ_pts)}
+INCOME_COLORS["Not classified"] = GRIS
 INCOME_LABELS = {
     "Low income": "Bajo", "Lower middle income": "Medio-bajo",
     "Upper middle income": "Medio-alto", "High income": "Alto",
@@ -97,5 +98,13 @@ def apply_theme():
 
 
 def income_palette(levels):
-    """Devuelve la lista de colores para una secuencia de niveles de ingreso."""
     return [INCOME_COLORS.get(l, GRIS) for l in levels]
+
+
+# ── Alias de compatibilidad (nombres semánticos antiguos → paleta nueva) ──── #
+VERDE_AGUA = AZUL
+CORAL = BERMELLON
+LAVANDA = CELESTE
+ROSA = PURPURA
+LIMA = VERDE
+ARENA = NARANJA

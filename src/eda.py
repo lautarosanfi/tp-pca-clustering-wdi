@@ -101,16 +101,16 @@ def plot_correlation(year=config.YEAR_MODERN):
             for sp in ax.spines.values():
                 sp.set_linewidth(0.25); sp.set_color("#d9d9d9")
             if i == j:
-                ax.hist(tdf[cols[i]].dropna(), bins=16, color=T.VERDE_AGUA,
+                ax.hist(tdf[cols[i]].dropna(), bins=16, color=T.AZUL,
                         alpha=0.85, linewidth=0)
                 ax.set_facecolor(T.NEUTRO)
-            elif i < j:
+            elif i > j:                       # triángulo INFERIOR
                 r = corr[i, j]
                 ax.set_facecolor(T.DIVERGING((r + 1) / 2))
                 ax.text(0.5, 0.5, f"{r:.2f}", ha="center", va="center",
                         fontsize=7, fontweight="bold", transform=ax.transAxes,
                         color="white" if abs(r) > 0.5 else T.NEGRO)
-            else:
+            else:                             # triángulo superior: vacío
                 ax.set_facecolor("white")
                 for sp in ax.spines.values():
                     sp.set_visible(False)
@@ -121,15 +121,15 @@ def plot_correlation(year=config.YEAR_MODERN):
                 ax.set_xlabel(SHORT[cols[j]], fontsize=7, rotation=40,
                               ha="right", va="top")
     leg = [
-        Patch(facecolor=T.DIV_POS, label="Correlación positiva"),
-        Patch(facecolor=T.DIV_NEG, label="Correlación negativa"),
+        Patch(facecolor=T.DIVERGING(0.92), label="Correlación positiva"),
+        Patch(facecolor=T.DIVERGING(0.08), label="Correlación negativa"),
         Patch(facecolor=T.NEUTRO, label="Distribución marginal (diagonal)"),
     ]
     fig.legend(handles=leg, loc="lower center", ncol=3, fontsize=9,
                bbox_to_anchor=(0.5, -0.01))
     fig.suptitle(
         f"Correlaciones de Pearson entre las 14 variables transformadas — {year}\n"
-        "Triángulo superior: coeficiente r  ·  Diagonal: distribución de cada variable",
+        "Triángulo inferior: coeficiente r  ·  Diagonal: distribución de cada variable",
         fontsize=13, y=1.01)
     fig.savefig(config.FIGURES / f"eda_correlacion_{year}.png")
     plt.close(fig)

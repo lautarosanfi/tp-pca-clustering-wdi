@@ -378,87 +378,73 @@ productiva.
 
 ## 2.4 Comparación temporal 2005 vs 2023
 
-### Construcción de un espacio común (y el error que se evita)
+### El problema de comparar a través del tiempo: la tendencia secular
 
-Comparar dos cortes temporales exige que ambos **vivan en el mismo espacio**; de lo
-contrario, la comparación carece de sentido. El error a evitar es ajustar un PCA
-*separado* para cada año y comparar las coordenadas: los ejes, los signos y las escalas
-diferirían y las posiciones no serían comparables. El enfoque correcto, adoptado aquí,
-es **apilar ambos años**, decidir las transformaciones sobre la distribución combinada y
-ajustar **un solo** estandarizador y **un solo** PCA sobre los datos conjuntos, de modo
-que todos los puntos país-año queden proyectados sobre **ejes comunes**. (La imputación
-de faltantes, en cambio, se hace siempre *dentro de cada año*, para no "usar el futuro
-para reconstruir el pasado".) La validez de este montaje se verifica comprobando que el
-modelo común reproduce el análisis transversal de 2023 (ARI = 0,979).
+Comparar dos cortes temporales exige cuidado. Ajustamos **un solo** PCA sobre los dos
+años apilados (transformaciones y escala decididas sobre la distribución combinada;
+imputación siempre *dentro de cada año*), de modo que el **eje de desarrollo esté
+definido de forma idéntica** en ambos cortes. Esto permite comparar la **estructura**.
+Sin embargo, comparar las **posiciones absolutas** de los países entre años sobre este
+eje **no es válido**, y la razón es importante:
 
-### Trayectorias y transiciones
+> Varias de las variables que definen el PC1 tienen una **fuerte tendencia secular
+> global**. El caso extremo es el uso de Internet, cuya mediana pasó de **10 % (2005) a
+> 81 % (2023)**; también subió la esperanza de vida (71 → 74 años). En el espacio común,
+> esto desplaza a **todos** los países hacia la derecha del PC1 (su media pasa de −0,47
+> en 2005 a +0,47 en 2023). Ese corrimiento refleja la **difusión tecnológica y
+> sanitaria mundial**, no que los países hayan mejorado *unos respecto de otros*.
 
-El movimiento medio sobre el PC1 entre 2005 y 2023 es de **+0,96**: **casi todos los
-países avanzaron** en el gradiente de desarrollo (Figura 12). Los mayores avances
-corresponden a economías de fuerte crecimiento y modernización (Georgia, Zambia, China,
-Camboya, Mongolia, Lesoto), mientras que los retrocesos se concentran en casos de
-**crisis o conflicto** (Líbano, Venezuela, Sudán). En términos de pertenencia de grupo,
-**40 países "se graduaron"** del conglomerado en desarrollo al desarrollado y **ninguno**
-retrocedió de grupo, aunque los tres casos mencionados sí se desplazaron hacia atrás
-*dentro* del gradiente sin cruzar la frontera (Figura 13).
+La descomposición lo confirma (Figura 14): el corrimiento absoluto medio del PC1 está
+**dominado por Internet (47 %) y la esperanza de vida (22 %)**; el PBI per cápita —que,
+aclaremos, está en **dólares constantes de 2015**, es decir, es **real** y no nominal—
+aporta apenas el 9 %. Es decir, el "avance" absoluto es en gran medida una **marea
+creciente** secular, y tomarlo como medida de desarrollo *relativo* sobreestimaría el
+progreso (haría aparecer, por ejemplo, a 2005 como mucho menos desarrollado de lo que
+era simplemente porque Internet aún no se había difundido).
 
-![Figura 12. Trayectorias 2005→2023 en el espacio PCA común.](figures/compare_trayectorias.png)
+![Figura 14. Composición del corrimiento absoluto del PC1: dominado por la difusión secular de Internet.](figures/compare_descomposicion_dPC1.png)
 
-![Figura 13. Matriz de transición de conglomerados 2005→2023.](figures/compare_transiciones.png)
+### La comparación válida: posición RELATIVA dentro de cada año
 
-### ¿Es válido afirmar que "tantos países mejoraron"? Una aclaración necesaria
+Para neutralizar la tendencia secular comparamos la **posición relativa** de cada país
+*respecto de sus contemporáneos*, de dos maneras complementarias:
 
-Un avance casi universal invita a una lectura crítica: ¿no será un artefacto de medición,
-por ejemplo de precios? La pregunta es legítima y se responde en dos planos.
+1. **Tiers relativos:** se clasifica cada año por separado en "desarrollado / en
+   desarrollo" (k-means dentro del año). Así, "desarrollado en 2005" significa estar en
+   el grupo alto **entre los países de 2005**. El resultado corrige la lectura ingenua:
+   ya había **107 de 192 países en el tier desarrollado en 2005** (entre ellos, como es
+   esperable, EE.UU., Alemania, Japón, Francia, Corea, etc.), y **121 de 191 en 2023**.
+   La proporción de "desarrollados" sube de forma **moderada** (≈56 % → ≈63 %), muy lejos
+   del "casi todos avanzaron" que sugería la lectura absoluta.
+2. **Percentil de desarrollo dentro del año:** se rankea el PC1 (eje común) dentro de
+   cada año. El cambio de percentil mide si un país **ganó o perdió terreno frente a sus
+   pares** (Figura 12). Sobre la diagonal no hay cambio relativo; por encima, ascenso
+   (catch-up); por debajo, descenso.
 
-**Primero, el PBI per cápita está medido en términos reales, no nominales.** El indicador
-es el PBI per cápita en **dólares constantes de 2015** (`NY.GDP.PCAP.KD`); al estar
-deflactado, la inflación no infla la comparación, ni entre países ni a lo largo del
-tiempo. El temor a un "espejismo de precios" no aplica a esta serie.
+![Figura 12. Movilidad relativa: percentil de desarrollo en 2005 vs 2023.](figures/compare_trayectorias.png)
 
-**Segundo, y más importante, el avance no está impulsado por el ingreso.** Como el score
-del PC1 es una combinación lineal de las variables estandarizadas, el avance medio puede
-**descomponerse** en la contribución de cada variable (Figura 14). El resultado es
-elocuente:
+**Movilidad relativa (Figura 13).** En el panel común, **15 países ascendieron** del
+tier en desarrollo al desarrollado —catch-up genuino: China, Vietnam, Georgia, Albania,
+Azerbaiyán, Botsuana, Marruecos, entre otros— y **solo 1 descendió** (Islas Marshall).
+Los mayores ascensos *relativos* en percentil son **Georgia (+19), China (+17), Mongolia
+(+14)**; los mayores descensos, exactamente los países en crisis: **Venezuela (−28),
+Líbano (−26), Argentina (−16)**. Nótese que los países desarrollados de larga data
+(EE.UU., Alemania, Corea) aparecen en el **percentil más alto en *ambos* años**: no es
+que "no hubiera desarrollados en 2005", sino que ya lo eran.
 
-| Variable | Contribución al avance medio en PC1 |
-|---|---:|
-| Uso de Internet | **47 %** |
-| Esperanza de vida | **22 %** |
-| PBI per cápita (real) | 9 % |
-| Población urbana | 9 % |
-| Servicios | 7 % |
-| Caída de la agricultura | 7 % |
-| Resto (comercio, crecimiento, etc.) | ≈ 0 % |
-
-El avance está **dominado por la explosión de la conectividad (Internet, 47 %) y por la
-mejora de la salud (esperanza de vida, 22 %)** —ganancias de desarrollo genuinas y de
-naturaleza **no monetaria**, inmunes a cualquier distorsión de precios—, mientras que el
-ingreso real aporta apenas el 9 %.
-
-![Figura 14. Descomposición del avance medio en PC1 por variable (2005→2023).](figures/compare_descomposicion_dPC1.png)
-
-**Un matiz interpretativo clave: marea creciente vs. convergencia.** Como Internet y la
-esperanza de vida crecieron en casi todos los países, el avance *absoluto* en el PC1 es
-casi universal: se trata de una "marea creciente" de desarrollo global, no
-necesariamente de un proceso de *convergencia* (los países pobres acercándose a los
-ricos). Por eso la lectura analíticamente más sólida no es el avance absoluto —esperable
-y casi trivial— sino el **movimiento relativo**: qué países cambiaron de grupo (40 se
-graduaron) y cuáles retrocedieron sobre el gradiente (Líbano, Venezuela, Sudán). Esa es
-la conclusión que el trabajo destaca.
+![Figura 13. Transiciones de tier relativo 2005 → 2023.](figures/compare_transiciones.png)
 
 ### Estabilidad de la estructura
 
-Finalmente, ¿cambió el *significado* del desarrollo en estas casi dos décadas? La
-respuesta es no: la **congruencia de Tucker** entre las cargas del PC1 de 2005 y las de
-2023 es **0,962** (correlación 0,946), de modo que el gradiente de desarrollo es
-prácticamente el **mismo eje** (Figura 15). La agricultura sigue siendo el marcador más
-estable de menor desarrollo, mientras que las exportaciones e importaciones ganaron algo
-de peso (mayor integración comercial mundial). A diferencia del corte 2021, con 2023 el
-crecimiento del PBI ya **no** distorsiona el PC1 (carga próxima a cero en ambos años), lo
-que confirma el beneficio de haber elegido un año macroeconómicamente estable. En suma:
-los países se movieron *dentro* de un espacio de desarrollo cuya estructura permaneció
-estable.
+¿Cambió el *significado* del desarrollo en estas casi dos décadas? No: la **congruencia
+de Tucker** entre las cargas del PC1 de 2005 y de 2023 es **0,962** (correlación 0,946),
+de modo que el gradiente de desarrollo es prácticamente el **mismo eje** (Figura 15). La
+agricultura sigue siendo el marcador más estable de menor desarrollo y las exportaciones
+e importaciones ganaron algo de peso. A diferencia del corte 2021, con 2023 el
+crecimiento del PBI ya **no** distorsiona el PC1, lo que confirma el beneficio de elegir
+un año macroeconómicamente estable. En síntesis: la **estructura** del desarrollo se
+mantuvo estable, y la **movilidad relativa** —no el corrimiento secular absoluto— es la
+medida válida del cambio.
 
 ![Figura 15. Estabilidad de las cargas del PC1 entre 2005 y 2023.](figures/compare_loadings_pc1.png)
 
@@ -507,13 +493,15 @@ del trabajo.
    o "por debajo" de su ingreso en las dimensiones estructurales). No se trata de una
    taxonomía fina: la evidencia (silueta moderada, HDBSCAN reconociendo un continuo)
    indica que el desarrollo es esencialmente un **gradiente**.
-3. **Entre 2005 y 2023 el avance fue casi universal, pero impulsado por la conectividad
-   y la salud, no por el ingreso.** La descomposición muestra que Internet (47 %) y la
-   esperanza de vida (22 %) explican la mayor parte del avance, mientras que el PBI real
-   aporta el 9 %; se trata, por tanto, de progreso de desarrollo genuino y no de un
-   artefacto de precios. El movimiento *relativo* —40 países graduados, ninguno en
-   regresión de grupo— es más informativo que el avance absoluto, y la estructura del
-   desarrollo permaneció estable (congruencia del PC1 = 0,96).
+3. **Entre 2005 y 2023, el "avance" absoluto es en gran medida una tendencia secular, no
+   desarrollo relativo.** El corrimiento del PC1 está dominado por la difusión mundial de
+   Internet (47 %) y la esperanza de vida (22 %), por lo que comparar posiciones absolutas
+   entre años sobreestima el progreso. La medida **válida es la posición relativa dentro
+   de cada año**: ya había 107/192 países en el tier desarrollado en 2005 y 121/191 en
+   2023; en movilidad relativa, **15 países hicieron catch-up** (China, Vietnam, Georgia…)
+   y **solo 1 retrocedió de tier** (Islas Marshall), mientras que Venezuela, Líbano y
+   Argentina caen marcadamente en su percentil. La **estructura** del desarrollo
+   permaneció estable (congruencia del PC1 = 0,96).
 4. **En lo metodológico**, agrupar sobre las variables completas y *comparar* contra los
    componentes evita el sesgo del *tandem analysis*; aquí ambas particiones coinciden
    (ARI 1,00), pero la coincidencia se **demostró** en vez de suponerse.
@@ -524,9 +512,10 @@ del trabajo.
   causales.
 - El *clustering* es una **macro-separación**, no una tipología fina; así se reporta
   explícitamente.
-- El avance temporal absoluto refleja, en parte, una **tendencia secular global** (la
-  "marea creciente" de conectividad y longevidad); por eso se privilegia la lectura
-  relativa (transiciones de grupo).
+- El "avance" temporal **absoluto** está confundido por la **tendencia secular** de
+  variables como Internet (mediana 10 % → 81 %); por eso **no** se usa para medir
+  desarrollo y se privilegia la posición **relativa** dentro de cada año (tiers y
+  percentiles), robusta a esa tendencia.
 - La imputación (faltantes ≤ 15 %) y los *outliers* no alteran las conclusiones, con la
   salvedad documentada de la interacción entre `RobustScaler` y el caso de Macao.
 - Los WDI sufren rezagos y revisiones, y algunos indicadores cambian de definición (por

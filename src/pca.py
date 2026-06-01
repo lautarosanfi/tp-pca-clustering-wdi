@@ -144,26 +144,34 @@ def plot_loadings_bars(load, evr, fname, year=config.YEAR_MODERN):
 
 
 def plot_biplot(scores, load, evr, cats, fname, color_by="income", year=config.YEAR_MODERN):
-    fig, ax = plt.subplots(figsize=(11, 9))
+    fig, ax = plt.subplots(figsize=(11.5, 9))
     cseries = cats[color_by].reindex(cats.index)
     if color_by == "income":
         for lev in T.INCOME_ORDER:
             m = (cseries == lev).values
-            ax.scatter(scores[m, 0], scores[m, 1], s=38, color=T.INCOME_COLORS[lev],
-                       label=T.INCOME_LABELS[lev], alpha=0.9, edgecolor="white", lw=0.4)
+            ax.scatter(scores[m, 0], scores[m, 1], s=40, color=T.INCOME_COLORS[lev],
+                       label=T.INCOME_LABELS[lev], alpha=0.95, edgecolor="white", lw=0.4)
     else:
-        for i, (lev, _) in enumerate(cseries.groupby(cseries)):
+        levs = [l for l in cseries.dropna().unique()]
+        for i, lev in enumerate(sorted(levs)):
             m = (cseries == lev).values
-            ax.scatter(scores[m, 0], scores[m, 1], s=38,
+            ax.scatter(scores[m, 0], scores[m, 1], s=40,
                        color=T.CATEGORICAL[i % len(T.CATEGORICAL)],
-                       label=lev, alpha=0.9, edgecolor="white", lw=0.4)
-    scale = np.abs(scores[:, :2]).max() / np.abs(load.values[:, :2]).max() * 0.9
-    for v in load.index:
-        ax.annotate("", xy=(load.loc[v, "PC1"] * scale, load.loc[v, "PC2"] * scale),
-                    xytext=(0, 0),
-                    arrowprops=dict(arrowstyle="-|>", color=T.NEGRO, alpha=0.55, lw=1.2))
-        ax.text(load.loc[v, "PC1"] * scale * 1.08, load.loc[v, "PC2"] * scale * 1.08,
-                SHORT.get(v, v), fontsize=7.5, color=T.NEGRO)
+                       label=lev, alpha=0.95, edgecolor="white", lw=0.4)
+    # escala de las flechas y LÍMITES que garantizan que TODAS entren
+    sx = 0.9 * np.abs(scores[:, 0]).max() / np.abs(load["PC1"]).max()
+    sy = 0.9 * np.abs(scores[:, 1]).max() / np.abs(load["PC2"]).max()
+    scale = min(sx, sy)
+    tips = load[["PC1", "PC2"]].values * scale
+    for v, (tx, ty) in zip(load.index, tips):
+        ax.annotate("", xy=(tx, ty), xytext=(0, 0),
+                    arrowprops=dict(arrowstyle="-|>", color=T.NEGRO, alpha=0.6, lw=1.3))
+        ax.text(tx * 1.06, ty * 1.06, SHORT.get(v, v), fontsize=8, color=T.NEGRO,
+                ha="left" if tx >= 0 else "right",
+                va="bottom" if ty >= 0 else "top")
+    lim_x = 1.18 * max(np.abs(scores[:, 0]).max(), np.abs(tips[:, 0]).max())
+    lim_y = 1.18 * max(np.abs(scores[:, 1]).max(), np.abs(tips[:, 1]).max())
+    ax.set_xlim(-lim_x, lim_x); ax.set_ylim(-lim_y, lim_y)
     ax.axhline(0, color=T.GRIS_MEDIO, lw=0.6, ls="--")
     ax.axvline(0, color=T.GRIS_MEDIO, lw=0.6, ls="--")
     ax.set_xlabel(f"PC1 — gradiente de desarrollo ({evr[0]*100:.1f}%)")
@@ -177,7 +185,10 @@ def plot_biplot(scores, load, evr, cats, fname, color_by="income", year=config.Y
 
 
 def plot_correlation_circle(load, evr, fname, year=config.YEAR_MODERN):
-    fig, ax = plt.subplots(figsize=(8.5, 8.5))
+    """Cada flecha se colorea según el EJE que domina su carga (|PC1| vs |PC2|),
+    no por el signo de PC1: así una variable de PC2 (p. ej. Industria) no aparece
+    pintada como si definiera PC1."""
+    fig, ax = plt.subplots(figsize=(8.8, 8.8))
     th = np.linspace(0, 2 * np.pi, 300)
     ax.plot(np.cos(th), np.sin(th), color=T.GRIS_MEDIO, lw=1.0)
     ax.plot(0.6 * np.cos(th), 0.6 * np.sin(th), color=T.GRIS_CLARO, lw=0.9, ls="--")
@@ -185,22 +196,21 @@ def plot_correlation_circle(load, evr, fname, year=config.YEAR_MODERN):
     ax.axvline(0, color=T.GRIS_MEDIO, lw=0.6, ls="--")
     for v in load.index:
         lx, ly = load.loc[v, "PC1"], load.loc[v, "PC2"]
-        color = T.DIV_POS if lx >= 0 else T.DIV_NEG
+        color = T.AZUL if abs(lx) >= abs(ly) else T.NARANJA
         ax.annotate("", xy=(lx, ly), xytext=(0, 0),
-                    arrowprops=dict(arrowstyle="-|>", color=color, lw=1.7))
-        ax.text(lx * 1.07, ly * 1.07, SHORT.get(v, v), fontsize=8,
-                color=color, fontweight="bold",
-                ha="left" if lx >= 0 else "right",
+                    arrowprops=dict(arrowstyle="-|>", color=color, lw=1.8))
+        ax.text(lx * 1.07, ly * 1.07, SHORT.get(v, v), fontsize=8, color=color,
+                fontweight="bold", ha="left" if lx >= 0 else "right",
                 va="bottom" if ly >= 0 else "top")
-    ax.set_xlim(-1.25, 1.25); ax.set_ylim(-1.25, 1.25)
+    ax.set_xlim(-1.28, 1.28); ax.set_ylim(-1.28, 1.28)
     ax.set_aspect("equal")
     ax.set_xlabel(f"PC1 — gradiente de desarrollo ({evr[0]*100:.1f}%)")
     ax.set_ylabel(f"PC2 — estructura productiva ({evr[1]*100:.1f}%)")
     ax.set_title(f"Círculo de correlaciones (PC1-PC2) — {year}")
     legend = [
-        Line2D([0], [0], color=T.DIV_POS, lw=2, label="Correlación positiva con PC1"),
-        Line2D([0], [0], color=T.DIV_NEG, lw=2, label="Correlación negativa con PC1"),
-        Line2D([0], [0], ls="--", color=T.GRIS_CLARO, lw=1, label="Umbral calidad (r = 0,6)"),
+        Line2D([0], [0], color=T.AZUL, lw=2, label="Carga dominante en PC1 (desarrollo)"),
+        Line2D([0], [0], color=T.NARANJA, lw=2, label="Carga dominante en PC2 (estructura)"),
+        Line2D([0], [0], ls="--", color=T.GRIS_CLARO, lw=1, label="Umbral de calidad (r = 0,6)"),
     ]
     ax.legend(handles=legend, fontsize=8, loc="lower left")
     fig.tight_layout()

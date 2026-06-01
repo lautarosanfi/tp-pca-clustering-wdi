@@ -186,32 +186,19 @@ ul.task-list li input[type="checkbox"] {
 <li><strong>Resultado:</strong> χ²(cluster × ingreso) = 135,8 (p≈2e-28) en k=2 y 228,9 (p≈5e-45) en k=3: los clusters <strong>coinciden fuertemente</strong> con la clasificación oficial de ingreso, con <strong>excepciones interesantes</strong> (medio-alto en el grupo menos desarrollado: Indonesia, Guatemala, Fiji, islas del Pacífico; medio-bajo en el más desarrollado: Vietnam, Marruecos, Túnez, Jordania).</li>
 </ul>
 </section>
-<section id="comparación-temporal-2005-vs-2023-espacio-común" class="level2">
-<h2 class="anchored" data-anchor-id="comparación-temporal-2005-vs-2023-espacio-común">11. Comparación temporal 2005 vs 2023 (espacio común)</h2>
+<section id="comparación-temporal-2005-vs-2023-posición-relativa" class="level2">
+<h2 class="anchored" data-anchor-id="comparación-temporal-2005-vs-2023-posición-relativa">11. Comparación temporal 2005 vs 2023 (posición RELATIVA)</h2>
 <ul>
-<li><strong>Decisión:</strong> se <strong>apilan ambos años</strong>, se deciden transformaciones sobre la distribución combinada, y se ajustan <strong>un</strong> scaler y <strong>un</strong> PCA sobre los datos combinados; se obtienen los scores de todos los puntos país-año en ese espacio común. La imputación sigue siendo <strong>por año</strong>.</li>
-<li><strong>Justificación / error evitado:</strong> ajustar un PCA por año y comparar coordenadas es inválido (ejes, signos y escalas distintos). El espacio común lo resuelve.</li>
-<li><strong>Validación:</strong> el cluster del 2023 en el espacio común reproduce el modelo principal (ARI 0,979).</li>
-<li><strong>Resultados:</strong>
+<li><strong>Estructura — espacio común (válido).</strong> Se ajusta <strong>un</strong> PCA sobre los dos años apilados (transformaciones/escala sobre la distribución combinada; imputación por año). Esto define el eje de desarrollo de forma idéntica en ambos cortes y permite comparar la <strong>estructura</strong> (cargas). Congruencia de Tucker de PC1 (2005 vs 2023) = <strong>0,962</strong> (corr 0,946): el gradiente es el <strong>mismo eje</strong>.</li>
+<li><strong>Por qué NO se comparan posiciones absolutas (corrección metodológica clave).</strong> Varias variables que definen PC1 tienen fuerte <strong>tendencia secular</strong>: la mediana de uso de Internet pasó de <strong>10 % (2005) a 81 % (2023)</strong>. En el espacio común esto corre a <em>todos</em> los países a la derecha (PC1 medio −0,47 → +0,47). La descomposición del corrimiento absoluto (<code>descomposicion_dPC1.csv</code>) lo confirma: <strong>Internet 47 %, esperanza de vida 22 %</strong>, PBI real solo 9 %. Por lo tanto, el “avance absoluto” mide sobre todo <strong>difusión tecnológica/sanitaria mundial</strong>, no desarrollo <em>relativo</em>. Tomar la posición absoluta haría aparecer a 2005 como menos desarrollado de lo que era solo porque Internet aún no se había difundido (p.&nbsp;ej., en el espacio común 2005 tiene 82 “desarrollados”, contra 107 cuando se mide relativo — la diferencia es puro artefacto secular). <em>(El PBI, además, es real: <code>NY.GDP.PCAP.KD</code> en US$ constantes de 2015 — no hay artefacto de precios.)</em></li>
+<li><strong>Decisión: comparar posición RELATIVA dentro de cada año</strong> (robusta a la tendencia secular), de dos formas:
 <ul>
-<li>Movimiento medio en PC1 = <strong>+0,96</strong>: casi todos los países avanzaron en el gradiente.</li>
-<li><strong>Mayores avances:</strong> Georgia, Zambia, China, Camboya, Mongolia, Lesoto. <strong>Retrocesos:</strong> Líbano, Venezuela, Sudán (crisis financiera/colapso/conflicto).</li>
-<li><strong>Transiciones:</strong> <strong>40</strong> países “graduaron” de menos→más desarrollado; <strong>ninguno</strong> regresó en términos de cluster (aunque Líbano/Venezuela/Sudán retroceden sobre PC1).</li>
-<li><strong>Estabilidad de estructura:</strong> congruencia de Tucker de las cargas de PC1 (2005 vs 2023) = <strong>0,962</strong> (corr 0,946). El gradiente es el <strong>mismo eje</strong> a ~18 años. A diferencia del corte 2021, con 2023 el crecimiento del PBI ya <strong>no</strong> distorsiona PC1 (carga ≈ 0 en ambos años) — beneficio directo de usar un año macro estable.</li>
+<li><strong>Tiers relativos:</strong> k-means k=2 <strong>dentro de cada año</strong> ⇒ “desarrollado” = grupo alto entre los contemporáneos. Resultado: <strong>107/192 desarrollados en 2005</strong> (incluye EE.UU., Alemania, Japón, Corea, etc.) y <strong>121/191 en 2023</strong>; la proporción sube moderadamente (≈56 % → ≈63 %). Validación: el tier relativo de 2023 coincide con el modelo principal (ARI <strong>1,000</strong>).</li>
+<li><strong>Percentil de PC1 dentro del año:</strong> mide si un país ganó/perdió terreno frente a sus pares.</li>
 </ul></li>
+<li><strong>Resultados (movilidad relativa, panel común):</strong> <strong>15 países ascendieron</strong> de tier (catch-up: China, Vietnam, Georgia, Albania, Azerbaiyán, Botsuana, Marruecos, …) y <strong>solo 1 descendió</strong> (Islas Marshall). Mayores ascensos en percentil: Georgia (+19), China (+17), Mongolia (+14). Mayores descensos: <strong>Venezuela (−28), Líbano (−26), Argentina (−16)</strong> — países en crisis. Los desarrollados de larga data (EE.UU., Alemania, Corea) están en el percentil más alto en <strong>ambos</strong> años.</li>
+<li><strong>Entidades que cambiaron entre años:</strong> panel común de 183 países; las que solo están en un año (p.&nbsp;ej. Siria, fuera de 2023 por faltantes) quedan fuera de las trayectorias (<code>reporte_limpieza.json</code>).</li>
 </ul>
-<section id="a-es-válido-afirmar-que-tantos-países-mejoraron-pbi-real-vs-nominal" class="level3">
-<h3 class="anchored" data-anchor-id="a-es-válido-afirmar-que-tantos-países-mejoraron-pbi-real-vs-nominal">11.a ¿Es válido afirmar que “tantos países mejoraron”? (PBI real vs nominal)</h3>
-<p>Pregunta metodológica clave. <strong>Dos respuestas con evidencia:</strong></p>
-<ol type="1">
-<li><strong>El PBI per cápita es REAL, no nominal.</strong> El indicador es <code>NY.GDP.PCAP.KD</code> = <em>constant 2015 US$</em>. Al estar en dólares <strong>constantes</strong>, la inflación no infla la comparación: el temor de un “artefacto de precios” no aplica a esta serie.</li>
-<li><strong>El avance NO está dominado por el PBI.</strong> Descomponemos el avance medio en PC1 (+0,96) como <code>mean(ΔPC1) = Σ wᵥ · mean(Δzᵥ)</code> (<code>descomposicion_dPC1.csv</code>): <strong>Internet 47%</strong>, <strong>esperanza de vida 22%</strong>, PBI per cápita (real) <strong>9%</strong>, urbano 9%, servicios 7%, caída de agricultura 7%. El avance lo explican sobre todo la <strong>conectividad</strong> y la <strong>salud</strong> (ganancias no monetarias), no el ingreso.</li>
-</ol>
-<p><strong>Matiz (marea creciente vs reposicionamiento relativo).</strong> Como Internet y la esperanza de vida subieron casi en todos lados, el avance <strong>absoluto</strong> en PC1 es casi universal (tendencia secular global), no necesariamente convergencia. Por eso priorizamos la lectura <strong>relativa</strong>: transiciones de cluster (40 graduaron) y retrocesos sobre el gradiente. Esa es la conclusión robusta.</p>
-<ul>
-<li><strong>Entidades que cambiaron entre años:</strong> se manejan explícitamente vía el panel común (183 países en ambos cortes); las que solo están en un año (p.&nbsp;ej. Siria, fuera de 2023 por faltantes) quedan fuera de las trayectorias y se listan en <code>data/processed/reporte_limpieza.json</code>.</li>
-</ul>
-</section>
 </section>
 <section id="reproducibilidad" class="level2">
 <h2 class="anchored" data-anchor-id="reproducibilidad">12. Reproducibilidad</h2>

@@ -54,82 +54,89 @@ def per_year_loadings(imp, columns):
     return _align_sign(df), pca.explained_variance_ratio_
 
 
+def _year_tiers(year):
+    """Clasifica los países en 2 tiers (desarrollado=1 / en desarrollo=0) DENTRO
+    de ese año (relativo a sus contemporáneos). Devuelve (tier_serie, pc1_serie)."""
+    imp, _, _, _ = prep.prepare_single(year)
+    p = PCA(svd_solver="full", random_state=RS).fit(imp.values)
+    s1 = p.transform(imp.values)[:, 0]
+    gi = list(imp.columns).index("NY.GDP.PCAP.KD")
+    if p.components_[0][gi] < 0:
+        s1 = -s1
+    lab = KMeans(n_clusters=2, n_init=20, random_state=RS).fit_predict(imp.values)
+    if s1[lab == 0].mean() > s1[lab == 1].mean():
+        lab = 1 - lab
+    return pd.Series(lab, index=imp.index), pd.Series(s1, index=imp.index)
+
+
 def run():
+    YE, YM = config.YEAR_EARLY, config.YEAR_MODERN
     data = prep.prepare_combined()
-    pre = data["pre"]
     stacked = data["stacked"]              # MultiIndex (iso, anio), 14 cols
     cols = list(stacked.columns)
 
-    # -------- PCA común sobre los datos combinados --------
+    # -------- PCA COMÚN: define el eje "desarrollo" y la comparación de ESTRUCTURA -- #
     pca = PCA(svd_solver="full", random_state=RS).fit(stacked.values)
     scores = pca.transform(stacked.values)
     evr = pca.explained_variance_ratio_
     sc = pd.DataFrame(scores[:, :3], index=stacked.index, columns=["PC1", "PC2", "PC3"])
-    load_comb = _align_sign(
-        pd.DataFrame(pca.components_.T[:, :3] * np.sqrt(pca.explained_variance_[:3]),
-                     index=cols, columns=["PC1", "PC2", "PC3"]))
-    # alinear scores si se invirtió PC1
-    if (pca.components_.T[:, 0][cols.index("NY.GDP.PCAP.KD")]) < 0:
+    if pca.components_[0][cols.index("NY.GDP.PCAP.KD")] < 0:
         sc["PC1"] = -sc["PC1"]
-    print(f"PCA común: var explicada PC1-3 = {np.round(evr[:3]*100,1)} (acum {evr[:3].sum()*100:.1f}%)")
+    pc1_e_all = sc.xs(YE, level="anio")["PC1"]
+    pc1_m_all = sc.xs(YM, level="anio")["PC1"]
+    print(f"PCA común: var explicada PC1-3 = {np.round(evr[:3]*100,1)}")
+    print(f"PC1 medio en el espacio común: {YE}={pc1_e_all.mean():+.2f}  "
+          f"{YM}={pc1_m_all.mean():+.2f}  <- CORRIMIENTO SECULAR (no es desarrollo "
+          f"relativo): comparar posiciones absolutas NO es válido.")
 
-    # -------- Clustering k=2 en el espacio común (14 vars combinadas) --------
-    km = KMeans(n_clusters=2, n_init=20, random_state=RS).fit(stacked.values)
-    lab = km.labels_
-    # ordenar: cluster 0 = menos desarrollado (menor PC1 medio)
-    pc1 = sc["PC1"].values
-    if pc1[lab == 0].mean() > pc1[lab == 1].mean():
-        lab = 1 - lab
-    sc["cluster"] = lab
+    # -------- Posición RELATIVA: tiers y percentiles DENTRO de cada año ----------- #
+    tier_e, _ = _year_tiers(YE)
+    tier_m, _ = _year_tiers(YM)
+    print(f"Desarrollados (relativo a cada año): {YE}={int(tier_e.sum())}/{len(tier_e)}  "
+          f"{YM}={int(tier_m.sum())}/{len(tier_m)}")
+    # validación: el tier relativo de YM ~ modelo principal de YM
+    main = pd.read_csv(config.DATA_PROC / f"clusters_{YM}.csv", index_col="countryiso3code")
+    cm = main.index.intersection(tier_m.index)
+    ari_main = adjusted_rand_score(main.loc[cm, "cluster_k2"], tier_m.loc[cm])
+    print(f"ARI tier-relativo-{YM} vs modelo-principal-{YM}: {ari_main:.3f}")
+    perc_e = pc1_e_all.rank(pct=True) * 100   # percentil de desarrollo dentro del año
+    perc_m = pc1_m_all.rank(pct=True) * 100
 
-    YE, YM = config.YEAR_EARLY, config.YEAR_MODERN
-    # validar contra el modelo principal del año moderno (debe coincidir mucho)
-    main = pd.read_csv(config.DATA_PROC / f"clusters_{YM}.csv",
-                       index_col="countryiso3code")
-    scM = sc.xs(YM, level="anio")
-    commonM = main.index.intersection(scM.index)
-    ari_main = adjusted_rand_score(main.loc[commonM, "cluster_k2"],
-                                   scM.loc[commonM, "cluster"])
-    print(f"ARI cluster espacio-común-{YM} vs modelo-principal-{YM}: {ari_main:.3f}")
-
-    # -------- Panel común y trayectorias --------
+    # -------- Panel común: trayectorias RELATIVAS ---------------------------------- #
     common = pd.read_csv(config.DATA_PROC / "panel_comun.csv")["countryiso3code"].tolist()
+    meta = pd.read_csv(config.DATA_PROC / f"countries_{YM}.csv", index_col="countryiso3code")
     rows = []
     for iso in common:
-        try:
-            e = sc.loc[(iso, YE)]
-            m = sc.loc[(iso, YM)]
-        except KeyError:
+        if not all(iso in s.index for s in (perc_e, perc_m, tier_e, tier_m)):
             continue
         rows.append({
             "iso": iso,
-            "PC1_e": e["PC1"], "PC1_m": m["PC1"],
-            "PC2_e": e["PC2"], "PC2_m": m["PC2"],
-            "cluster_e": int(e["cluster"]), "cluster_m": int(m["cluster"]),
-            "dPC1": m["PC1"] - e["PC1"], "dPC2": m["PC2"] - e["PC2"],
+            "perc_e": perc_e[iso], "perc_m": perc_m[iso],
+            "dperc": perc_m[iso] - perc_e[iso],
+            "tier_e": int(tier_e[iso]), "tier_m": int(tier_m[iso]),
+            "pc1_e": pc1_e_all[iso], "pc1_m": pc1_m_all[iso],
         })
     traj = pd.DataFrame(rows).set_index("iso")
-    meta = pd.read_csv(config.DATA_PROC / f"countries_{YM}.csv",
-                       index_col="countryiso3code")
     traj["country"] = meta["country"].reindex(traj.index)
     traj["region"] = meta["region"].reindex(traj.index)
     traj.to_csv(config.DATA_PROC / "trayectorias.csv", encoding="utf-8")
 
-    print(f"\nMovimiento medio en PC1 ({YE}->{YM}): {traj['dPC1'].mean():+.3f} "
-          f"(positivo = avance en el gradiente de desarrollo)")
-    print("Países que más avanzaron en PC1:")
-    print(traj.sort_values("dPC1", ascending=False).head(8)[["country", "dPC1"]].round(2).to_string())
-    print("Países que más retrocedieron en PC1:")
-    print(traj.sort_values("dPC1").head(5)[["country", "dPC1"]].round(2).to_string())
+    print(f"\nMayor ASCENSO en posición relativa (Δ percentil, {YE}->{YM}):")
+    print(traj.sort_values("dperc", ascending=False).head(8)[
+        ["country", "perc_e", "perc_m", "dperc"]].round(1).to_string())
+    print("Mayor DESCENSO en posición relativa:")
+    print(traj.sort_values("dperc").head(6)[
+        ["country", "perc_e", "perc_m", "dperc"]].round(1).to_string())
 
-    # -------- Transiciones de cluster --------
-    trans = pd.crosstab(traj["cluster_e"], traj["cluster_m"],
-                        rownames=[f"cluster {YE}"], colnames=[f"cluster {YM}"])
-    print("\nMatriz de transición de clusters (panel común):")
+    # -------- Transiciones de tier RELATIVO ---------------------------------------- #
+    trans = pd.crosstab(traj["tier_e"], traj["tier_m"],
+                        rownames=[f"tier {YE}"], colnames=[f"tier {YM}"])
+    print("\nMatriz de transición de tiers relativos (panel común):")
     print(trans.to_string())
-    movers = traj[traj["cluster_e"] != traj["cluster_m"]]
-    print(f"\nPaíses que cambiaron de cluster: {len(movers)}")
-    print(movers[["country", "cluster_e", "cluster_m", "dPC1"]].round(2).to_string())
+    subio = traj[(traj["tier_e"] == 0) & (traj["tier_m"] == 1)]
+    bajo = traj[(traj["tier_e"] == 1) & (traj["tier_m"] == 0)]
+    print(f"\nAscendieron de tier (catch-up): {len(subio)} -> {sorted(subio['country'].tolist())}")
+    print(f"Descendieron de tier: {len(bajo)} -> {sorted(bajo['country'].tolist())}")
     trans.to_csv(config.DATA_PROC / "transiciones_cluster.csv", encoding="utf-8")
 
     # -------- Estabilidad de la estructura (loadings por año) --------
@@ -173,7 +180,7 @@ def run():
     dec.to_csv(config.DATA_PROC / "descomposicion_dPC1.csv", index=False, encoding="utf-8")
 
     # -------- Figuras --------
-    _plot_trajectories(traj, evr, "compare_trayectorias.png")
+    _plot_trajectories(traj, "compare_trayectorias.png")
     _plot_transition(trans, "compare_transiciones.png")
     _plot_loadings_compare(load05["PC1"], load21["PC1"], cols, "compare_loadings_pc1.png")
     _plot_decomposicion(dec, "compare_descomposicion_dPC1.png")
@@ -184,13 +191,17 @@ def run():
         "anio_early": config.YEAR_EARLY,
         "anio_modern": config.YEAR_MODERN,
         "evr_comun": [float(x) for x in evr[:3]],
-        "ari_main_modern": float(ari_main),
-        "mov_medio_pc1": float(traj["dPC1"].mean()),
+        "ari_tier_modern_vs_main": float(ari_main),
+        "pc1_medio_comun_early": float(pc1_e_all.mean()),
+        "pc1_medio_comun_modern": float(pc1_m_all.mean()),
+        "desarrollados_relativo_early": int(tier_e.sum()),
+        "desarrollados_relativo_modern": int(tier_m.sum()),
+        "ascendieron_tier": int(len(subio)),
+        "descendieron_tier": int(len(bajo)),
         "congruencia_pc1": congru,
         "corr_pc1": corr_pc1,
         "evr_pc1_early": float(evr05[0]), "evr_pc1_modern": float(evr21[0]),
-        "n_cambian_cluster": int(len(movers)),
-        "dPC1_total_descomp": float(contrib.sum()),
+        "dPC1_secular_total": float(contrib.sum()),
     }
     with open(config.DATA_PROC / "compare_resultados.json", "w", encoding="utf-8") as f:
         json.dump(out, f, ensure_ascii=False, indent=2)
@@ -198,44 +209,42 @@ def run():
     return out
 
 
-def _plot_trajectories(traj, evr, fname):
-    """Top 5 avances y top 5 retrocesos en PC1, sobre la nube de todos los países."""
+RELEVANTES = ["CHN", "IND", "USA", "BRA", "RUS", "IDN", "NGA", "KOR", "VNM",
+              "POL", "TUR", "ZAF", "MEX", "DEU"]
+
+
+def _plot_trajectories(traj, fname):
+    """Movilidad RELATIVA: percentil de desarrollo (dentro de cada año) en YE vs YM.
+    Robusto a la tendencia secular. Sobre la diagonal = sin cambio relativo;
+    arriba = ascenso relativo (catch-up); abajo = descenso relativo."""
     YE, YM = config.YEAR_EARLY, config.YEAR_MODERN
-    mejores = traj.nlargest(5, "dPC1")
-    peores = traj.nsmallest(5, "dPC1")
-    fig, ax = plt.subplots(figsize=(12, 9))
-    # nube de contexto (todos los países, ambos años, tenue)
-    ax.scatter(traj["PC1_e"], traj["PC2_e"], s=10, color=T.GRIS_CLARO, zorder=1)
-    ax.scatter(traj["PC1_m"], traj["PC2_m"], s=10, color=T.GRIS_MEDIO, alpha=0.5, zorder=1)
-
-    def _arrow(r, color):
-        ax.scatter(r["PC1_e"], r["PC2_e"], s=45, color=T.GRIS_MEDIO,
-                   edgecolor="white", lw=0.8, zorder=3)
-        ax.annotate("", xy=(r["PC1_m"], r["PC2_m"]), xytext=(r["PC1_e"], r["PC2_e"]),
-                    arrowprops=dict(arrowstyle="-|>", color=color, lw=2.0,
-                                    mutation_scale=14), zorder=4)
-        ax.scatter(r["PC1_m"], r["PC2_m"], s=70, color=color,
-                   edgecolor="white", lw=1.0, zorder=5)
-        ax.text(r["PC1_m"] + 0.15, r["PC2_m"] + 0.15, r["country"], fontsize=8.5,
-                color=color, fontweight="bold", zorder=6)
-
-    for _, r in mejores.iterrows():
-        _arrow(r, T.DIV_POS)
-    for _, r in peores.iterrows():
-        _arrow(r, T.DIV_NEG)
-
-    ax.axhline(0, color=T.GRIS_CLARO, lw=1.0, ls="--")
-    ax.axvline(0, color=T.GRIS_CLARO, lw=1.0, ls="--")
-    ax.set_xlabel(f"PC1 — gradiente de desarrollo ({evr[0]*100:.1f}%)")
-    ax.set_ylabel(f"PC2 — estructura productiva ({evr[1]*100:.1f}%)")
-    ax.set_title(f"Mayores avances y retrocesos en el gradiente de desarrollo — {YE} a {YM}")
+    fig, ax = plt.subplots(figsize=(10.5, 9))
+    ax.plot([0, 100], [0, 100], ls="--", color=T.GRIS_MEDIO, lw=1.2, zorder=1)
+    # color por dirección del cambio relativo
+    for _, r in traj.iterrows():
+        d = r["dperc"]
+        col = T.AZUL if d > 3 else (T.BERMELLON if d < -3 else T.GRIS_CLARO)
+        ax.scatter(r["perc_e"], r["perc_m"], s=42, color=col, alpha=0.9,
+                   edgecolor="white", lw=0.4, zorder=3)
+    # etiquetar países relevantes + mayores movimientos relativos
+    destacar = set(RELEVANTES) | set(traj["dperc"].abs().sort_values(ascending=False).head(8).index)
+    for iso in destacar:
+        if iso in traj.index:
+            r = traj.loc[iso]
+            ax.text(r["perc_e"] + 1.2, r["perc_m"] + 1.2, r["country"], fontsize=7.5,
+                    color=T.NEGRO, zorder=5)
+    ax.set_xlim(-2, 102); ax.set_ylim(-2, 102)
+    ax.set_xlabel(f"Percentil de desarrollo en {YE} (relativo a sus pares)")
+    ax.set_ylabel(f"Percentil de desarrollo en {YM} (relativo a sus pares)")
+    ax.set_title(f"Movilidad relativa en el gradiente de desarrollo — {YE} vs {YM}")
     handles = [
-        Line2D([0], [0], marker="o", color="w", markerfacecolor=T.GRIS_MEDIO, ms=8,
-               label=f"Posición en {YE}"),
-        Line2D([0], [0], marker=">", color=T.DIV_POS, lw=2, ms=8, label="Top 5 — mayor avance"),
-        Line2D([0], [0], marker=">", color=T.DIV_NEG, lw=2, ms=8, label="Top 5 — mayor retroceso"),
+        Line2D([0], [0], marker="o", color="w", markerfacecolor=T.AZUL, ms=9,
+               label="Ascenso relativo (catch-up)"),
+        Line2D([0], [0], marker="o", color="w", markerfacecolor=T.BERMELLON, ms=9,
+               label="Descenso relativo"),
+        Line2D([0], [0], ls="--", color=T.GRIS_MEDIO, label="Sin cambio relativo"),
     ]
-    ax.legend(handles=handles, loc="lower right")
+    ax.legend(handles=handles, loc="upper left")
     fig.tight_layout()
     fig.savefig(config.FIGURES / fname)
     plt.close(fig)
@@ -264,11 +273,11 @@ def _plot_transition(trans, fname):
     ax.set_yticks([y + 0.5 for y in range(n)])
     ax.set_xticklabels(["En desarrollo", "Desarrollado"], fontsize=9)
     ax.set_yticklabels(["Desarrollado", "En desarrollo"], fontsize=9)
-    ax.set_xlabel(f"Grupo en {YM}"); ax.set_ylabel(f"Grupo en {YE}")
+    ax.set_xlabel(f"Tier relativo en {YM}"); ax.set_ylabel(f"Tier relativo en {YE}")
     ax.tick_params(length=0)
     for sp in ax.spines.values():
         sp.set_visible(False)
-    ax.set_title(f"Transiciones de conglomerado {YE} → {YM}")
+    ax.set_title(f"Transiciones de tier relativo {YE} → {YM}")
     fig.tight_layout()
     fig.savefig(config.FIGURES / fname)
     plt.close(fig)
@@ -281,9 +290,9 @@ def _plot_decomposicion(dec, fname):
     fig, ax = plt.subplots(figsize=(10, 6.5))
     ax.barh(d["variable"], d["pct_del_total"], color=colors, edgecolor="white")
     ax.axvline(0, color=T.NEGRO, lw=0.8)
-    ax.set_xlabel("Contribución al avance medio en PC1 (%)")
-    ax.set_title(f"¿Qué explica el avance de los países entre {YE} y {YM}?\n"
-                 "Internet y esperanza de vida dominan; el PBI per cápita (real) aporta poco")
+    ax.set_xlabel("Contribución al corrimiento medio absoluto de PC1 (%)")
+    ax.set_title(f"Composición del corrimiento ABSOLUTO de PC1 ({YE}→{YM})\n"
+                 "Dominado por la difusión de Internet (tendencia secular global), no por el ingreso")
     for y, p in enumerate(d["pct_del_total"]):
         ax.text(p + (0.6 if p >= 0 else -0.6), y, f"{p:.1f}%", va="center",
                 ha="left" if p >= 0 else "right", fontsize=8.5, fontweight="bold",
@@ -368,14 +377,14 @@ def _plot_transicion_sankey(trans, fname):
     ax.text((X_L0 + X_L1) / 2, 10.5, str(YE), ha="center", fontsize=12, fontweight="bold")
     ax.text((X_R0 + X_R1) / 2, 10.5, str(YM), ha="center", fontsize=12, fontweight="bold")
     leg = [
-        Line2D([0], [0], color=T.LIMA, lw=8, label="Graduó al grupo desarrollado"),
-        Line2D([0], [0], color=T.VERDE_AGUA, lw=8, label="Permaneció desarrollado"),
-        Line2D([0], [0], color=T.CORAL, lw=8, label="Permaneció en desarrollo"),
+        Line2D([0], [0], color=T.LIMA, lw=8, label="Ascendió de tier (catch-up relativo)"),
+        Line2D([0], [0], color=T.VERDE_AGUA, lw=8, label="Tier desarrollado (ambos años)"),
+        Line2D([0], [0], color=T.CORAL, lw=8, label="Tier en desarrollo (ambos años)"),
     ]
     if M[1, 0] > 0:
-        leg.append(Line2D([0], [0], color=T.DIV_NEG, lw=8, label="Retrocedió de grupo"))
+        leg.append(Line2D([0], [0], color=T.DIV_NEG, lw=8, label="Descendió de tier"))
     ax.legend(handles=leg, loc="center left", bbox_to_anchor=(1.0, 0.5), fontsize=9)
-    ax.set_title(f"Flujo de países entre grupos — {YE} a {YM}", x=0.42)
+    ax.set_title(f"Flujo de países entre tiers relativos — {YE} a {YM}", x=0.42)
     fig.tight_layout()
     fig.savefig(config.FIGURES / fname)
     plt.close(fig)
@@ -387,8 +396,8 @@ def _plot_transicion_waffle(traj, fname):
     YE, YM = config.YEAR_EARLY, config.YEAR_MODERN
     total = len(traj)
     dist = {
-        YE: {0: int((traj["cluster_e"] == 0).sum()), 1: int((traj["cluster_e"] == 1).sum())},
-        YM: {0: int((traj["cluster_m"] == 0).sum()), 1: int((traj["cluster_m"] == 1).sum())},
+        YE: {0: int((traj["tier_e"] == 0).sum()), 1: int((traj["tier_e"] == 1).sum())},
+        YM: {0: int((traj["tier_m"] == 0).sum()), 1: int((traj["tier_m"] == 1).sum())},
     }
     COLS_W = 15
     ROWS_W = int(np.ceil(total / COLS_W))
