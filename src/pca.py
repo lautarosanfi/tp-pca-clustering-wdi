@@ -22,6 +22,7 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
+from matplotlib.colors import to_rgb
 from sklearn.decomposition import PCA
 
 try:
@@ -121,7 +122,10 @@ def plot_loadings_bars(load, evr, fname, year=config.YEAR_MODERN):
         f"PC2 ({evr[1]*100:.1f}%)\nEstructura productiva",
         f"PC3 ({evr[2]*100:.1f}%)\nApertura comercial",
     ]
-    fig, axes = plt.subplots(1, 3, figsize=(13, 7), sharey=True)
+    # sharey=False + etiquetas en CADA panel: así el nombre de la variable queda
+    # junto a su barra también en PC2 y PC3 (no solo en PC1).
+    fig, axes = plt.subplots(1, 3, figsize=(16, 7))
+    ylabels = [SHORT.get(i, i) for i in data.index]
     for ax, col, tit in zip(axes, ["PC1", "PC2", "PC3"], titulos):
         vals = data[col].values
         colors = [T.POS_FILL if v >= 0 else T.NEG_FILL for v in vals]
@@ -130,15 +134,16 @@ def plot_loadings_bars(load, evr, fname, year=config.YEAR_MODERN):
         for xv in (-0.5, 0.5):
             ax.axvline(xv, ls=":", color=T.GRIS_MEDIO, lw=0.7)
         ax.set_xlim(-1.08, 1.08)
+        ax.set_ylim(-0.7, len(data) - 0.3)
+        ax.set_yticks(range(len(data)))
+        ax.set_yticklabels(ylabels, fontsize=8.5)
         ax.set_title(tit, fontsize=10, color=T.DIV_POS)
         ax.set_xlabel("Carga (r variable–componente)", fontsize=9)
         for k, v in enumerate(vals):
             ax.text(v + (0.04 if v >= 0 else -0.04), k, f"{v:.2f}", va="center",
                     ha="left" if v >= 0 else "right", fontsize=7.5, color=T.NEGRO)
-    axes[0].set_yticks(range(len(data)))
-    axes[0].set_yticklabels([SHORT.get(i, i) for i in data.index], fontsize=9)
     fig.suptitle(f"Cargas de los tres primeros componentes — {year}", fontsize=13)
-    fig.tight_layout()
+    fig.tight_layout(w_pad=2.5)
     fig.savefig(config.FIGURES / fname)
     plt.close(fig)
 
@@ -185,9 +190,14 @@ def plot_biplot(scores, load, evr, cats, fname, color_by="income", year=config.Y
 
 
 def plot_correlation_circle(load, evr, fname, year=config.YEAR_MODERN):
-    """Cada flecha se colorea según el EJE que domina su carga (|PC1| vs |PC2|),
-    no por el signo de PC1: así una variable de PC2 (p. ej. Industria) no aparece
-    pintada como si definiera PC1."""
+    """Color CONTINUO según la carga en PC1: teal hacia la derecha (PC1 positivo,
+    desarrollo) y oro hacia la izquierda (PC1 negativo, agricultura). Cuanto MENOS
+    pesa PC1 y más PC2 (flecha más vertical), el color se DESATURA hacia el negro
+    (la variable "pierde color" porque no define el gradiente de desarrollo)."""
+    def _blend(c_from, c_to, t):           # t=0 -> c_from, t=1 -> c_to
+        a = np.array(to_rgb(c_from)); b = np.array(to_rgb(c_to))
+        return tuple((1 - t) * a + t * b)
+
     fig, ax = plt.subplots(figsize=(8.8, 8.8))
     th = np.linspace(0, 2 * np.pi, 300)
     ax.plot(np.cos(th), np.sin(th), color=T.GRIS_MEDIO, lw=1.0)
@@ -196,9 +206,12 @@ def plot_correlation_circle(load, evr, fname, year=config.YEAR_MODERN):
     ax.axvline(0, color=T.GRIS_MEDIO, lw=0.6, ls="--")
     for v in load.index:
         lx, ly = load.loc[v, "PC1"], load.loc[v, "PC2"]
-        color = T.AZUL if abs(lx) >= abs(ly) else T.NARANJA
+        norm = float(np.hypot(lx, ly))
+        t = abs(lx) / norm if norm > 0 else 0.0     # 1 = puro PC1, 0 = puro PC2
+        base = T.DIV_POS if lx >= 0 else T.NARANJA   # derecha teal / izquierda oro
+        color = _blend(T.NEGRO, base, t)             # menos PC1 -> pierde color
         ax.annotate("", xy=(lx, ly), xytext=(0, 0),
-                    arrowprops=dict(arrowstyle="-|>", color=color, lw=1.8))
+                    arrowprops=dict(arrowstyle="-|>", color=color, lw=1.9))
         ax.text(lx * 1.07, ly * 1.07, SHORT.get(v, v), fontsize=8, color=color,
                 fontweight="bold", ha="left" if lx >= 0 else "right",
                 va="bottom" if ly >= 0 else "top")
@@ -208,8 +221,9 @@ def plot_correlation_circle(load, evr, fname, year=config.YEAR_MODERN):
     ax.set_ylabel(f"PC2 — estructura productiva ({evr[1]*100:.1f}%)")
     ax.set_title(f"Círculo de correlaciones (PC1-PC2) — {year}")
     legend = [
-        Line2D([0], [0], color=T.AZUL, lw=2, label="Carga dominante en PC1 (desarrollo)"),
-        Line2D([0], [0], color=T.NARANJA, lw=2, label="Carga dominante en PC2 (estructura)"),
+        Line2D([0], [0], color=T.DIV_POS, lw=3, label="Carga + en PC1 (→ desarrollo)"),
+        Line2D([0], [0], color=T.NARANJA, lw=3, label="Carga − en PC1 (← agricultura)"),
+        Line2D([0], [0], color=T.NEGRO, lw=3, label="Dominada por PC2 (pierde color)"),
         Line2D([0], [0], ls="--", color=T.GRIS_CLARO, lw=1, label="Umbral de calidad (r = 0,6)"),
     ]
     ax.legend(handles=legend, fontsize=8, loc="lower left")

@@ -251,33 +251,51 @@ def _plot_trajectories(traj, fname):
 
 
 def _plot_transition(trans, fname):
-    """Heatmap 2x2 con colores semánticos (permaneció / graduó / regresó)."""
+    """Barras apiladas por ORIGEN: de cada grupo de YE, ¿cuántos permanecieron y
+    cuántos cambiaron de tier en YM? El color marca el DESTINO (dónde terminó);
+    los segmentos fuera de la diagonal se anotan como ascenso/descenso."""
+    from matplotlib.patches import Patch
     YE, YM = config.YEAR_EARLY, config.YEAR_MODERN
-    fig, ax = plt.subplots(figsize=(6.2, 5.2))
-    n = trans.shape[0]
-    for i in range(n):
-        for j in range(n):
-            val = int(trans.iloc[i, j])
-            if i == j:
-                color = T.VERDE_AGUA if i == 1 else T.CORAL
-            elif j > i:
-                color = T.LIMA          # graduó (subió de grupo)
-            else:
-                color = T.DIV_NEG       # regresó
-            ax.add_patch(plt.Rectangle((j, n - 1 - i), 1, 1, facecolor=color,
-                                       edgecolor="white", lw=2))
-            ax.text(j + 0.5, n - 1 - i + 0.5, str(val), ha="center", va="center",
-                    fontsize=15, fontweight="bold", color="white")
-    ax.set_xlim(0, n); ax.set_ylim(0, n); ax.set_aspect("equal")
-    ax.set_xticks([x + 0.5 for x in range(n)])
-    ax.set_yticks([y + 0.5 for y in range(n)])
-    ax.set_xticklabels(["En desarrollo", "Desarrollado"], fontsize=9)
-    ax.set_yticklabels(["Desarrollado", "En desarrollo"], fontsize=9)
-    ax.set_xlabel(f"Tier relativo en {YM}"); ax.set_ylabel(f"Tier relativo en {YE}")
+    M = trans.values.astype(int)              # filas=origen YE, cols=destino YM
+    dest_color = {0: T.CORAL, 1: T.AZUL}      # 0=en desarrollo, 1=desarrollado
+    rows_y = {0: 1.0, 1: 0.0}                 # fila 0 (en desarrollo) arriba
+    xmax = M.sum(1).max()
+    fig, ax = plt.subplots(figsize=(10.5, 4.4))
+    for r in (0, 1):
+        y = rows_y[r]; left = 0
+        for d in (0, 1):
+            w = int(M[r, d])
+            if w == 0:
+                continue
+            ax.barh(y, w, left=left, height=0.6, color=dest_color[d],
+                    edgecolor="white")
+            note = "↑ ascendió" if d > r else ("↓ descendió" if d < r else "")
+            if w / xmax < 0.07:        # segmento muy fino: anotar AFUERA (arriba)
+                ax.annotate(f"{w}  {note}".strip(), xy=(left + w / 2, y + 0.30),
+                            xytext=(left + w / 2, y + 0.55), ha="center",
+                            va="bottom", fontsize=9.5, color=dest_color[d],
+                            fontweight="bold",
+                            arrowprops=dict(arrowstyle="-", color=dest_color[d],
+                                            lw=0.9))
+            else:                      # segmento ancho: etiqueta DENTRO en blanco
+                label = f"{w}" + (f"\n{note}" if note else "")
+                ax.text(left + w / 2, y, label, ha="center", va="center",
+                        color="white", fontweight="bold", fontsize=11)
+            left += w
+    ax.set_yticks([1.0, 0.0])
+    ax.set_yticklabels([f"En desarrollo\nen {YE}  (n={M[0].sum()})",
+                        f"Desarrollado\nen {YE}  (n={M[1].sum()})"], fontsize=10)
+    ax.set_xlim(0, M.sum(1).max() * 1.03)
+    ax.set_ylim(-0.6, 1.6)
+    ax.set_xlabel("Cantidad de países")
+    ax.set_title(f"¿A dónde fue cada grupo? Transición de tier relativo {YE} → {YM}")
+    leg = [Patch(facecolor=T.CORAL, label=f"Terminó en desarrollo ({YM})"),
+           Patch(facecolor=T.AZUL, label=f"Terminó desarrollado ({YM})")]
+    ax.legend(handles=leg, loc="lower right", fontsize=9)
+    for sp in ("top", "right", "left"):
+        ax.spines[sp].set_visible(False)
+    ax.grid(axis="x", color=T.GRIS_CLARO); ax.set_axisbelow(True)
     ax.tick_params(length=0)
-    for sp in ax.spines.values():
-        sp.set_visible(False)
-    ax.set_title(f"Transiciones de tier relativo {YE} → {YM}")
     fig.tight_layout()
     fig.savefig(config.FIGURES / fname)
     plt.close(fig)
@@ -321,70 +339,34 @@ def _plot_loadings_compare(l05, l21, cols, fname):
 
 
 def _plot_transicion_sankey(trans, fname):
-    """Diagrama de flujo (Sankey) leyendo los conteos reales de `trans`
-    (filas = grupo de origen, columnas = grupo de destino)."""
-    from matplotlib.path import Path
-    from matplotlib.patches import PathPatch, Rectangle
+    """Slopegraph: cómo cambió el TAMAÑO de cada tier entre los dos años (en lugar
+    del Sankey, más difícil de leer). Cada grupo es una línea: su pendiente muestra
+    si creció o se achicó; el subtítulo resume cuántos cambiaron de tier."""
     YE, YM = config.YEAR_EARLY, config.YEAR_MODERN
-    M = trans.values.astype(float)             # 2x2: [origen, destino]
-    total = M.sum()
-    scale = 10.0 / total
-    row_tot = M.sum(axis=1); col_tot = M.sum(axis=0)
-    X_L0, X_L1, X_R0, X_R1 = 0.0, 1.2, 4.8, 6.0
-    XM = (X_L1 + X_R0) / 2
-    flow_color = {(0, 0): T.CORAL, (1, 1): T.VERDE_AGUA,
-                  (0, 1): T.LIMA, (1, 0): T.DIV_NEG}
-
-    def bezier(ax, yl_lo, yl_hi, yr_lo, yr_hi, color):
-        verts = [(X_L1, yl_hi), (XM, yl_hi), (XM, yr_hi), (X_R0, yr_hi),
-                 (X_R0, yr_lo), (XM, yr_lo), (XM, yl_lo), (X_L1, yl_lo), (X_L1, yl_hi)]
-        codes = [Path.MOVETO, Path.CURVE4, Path.CURVE4, Path.CURVE4, Path.LINETO,
-                 Path.CURVE4, Path.CURVE4, Path.CURVE4, Path.CLOSEPOLY]
-        ax.add_patch(PathPatch(Path(verts, codes), facecolor=color, alpha=0.55,
-                               edgecolor="none"))
-
-    fig, ax = plt.subplots(figsize=(10, 7))
-    ax.set_xlim(-0.5, 7.8); ax.set_ylim(-1.0, 11.5); ax.axis("off")
-    bar_col = {0: T.CORAL, 1: T.VERDE_AGUA}
-    # cursores de apilado (de abajo hacia arriba): orden de grupos 1 (desarrollado) abajo, 0 arriba
-    grp_order = [1, 0]
-    left_cur = {}; right_cur = {}
-    y = 0.0
-    for g in grp_order:
-        left_cur[g] = y
-        ax.add_patch(Rectangle((X_L0, y), X_L1 - X_L0, row_tot[g] * scale,
-                               facecolor=bar_col[g], edgecolor="white", lw=1.5))
-        ax.text((X_L0 + X_L1) / 2, y + row_tot[g] * scale / 2, f"{int(row_tot[g])}",
-                ha="center", va="center", color="white", fontweight="bold")
-        y += row_tot[g] * scale
-    y = 0.0
-    for g in grp_order:
-        right_cur[g] = y
-        ax.add_patch(Rectangle((X_R0, y), X_R1 - X_R0, col_tot[g] * scale,
-                               facecolor=bar_col[g], edgecolor="white", lw=1.5))
-        ax.text((X_R0 + X_R1) / 2, y + col_tot[g] * scale / 2, f"{int(col_tot[g])}",
-                ha="center", va="center", color="white", fontweight="bold")
-        y += col_tot[g] * scale
-    # flujos i->j
-    for i in grp_order:
-        for j in grp_order:
-            w = M[i, j] * scale
-            if w <= 0:
-                continue
-            yl = left_cur[i]; yr = right_cur[j]
-            bezier(ax, yl, yl + w, yr, yr + w, flow_color[(i, j)])
-            left_cur[i] += w; right_cur[j] += w
-    ax.text((X_L0 + X_L1) / 2, 10.5, str(YE), ha="center", fontsize=12, fontweight="bold")
-    ax.text((X_R0 + X_R1) / 2, 10.5, str(YM), ha="center", fontsize=12, fontweight="bold")
-    leg = [
-        Line2D([0], [0], color=T.LIMA, lw=8, label="Ascendió de tier (catch-up relativo)"),
-        Line2D([0], [0], color=T.VERDE_AGUA, lw=8, label="Tier desarrollado (ambos años)"),
-        Line2D([0], [0], color=T.CORAL, lw=8, label="Tier en desarrollo (ambos años)"),
-    ]
-    if M[1, 0] > 0:
-        leg.append(Line2D([0], [0], color=T.DIV_NEG, lw=8, label="Descendió de tier"))
-    ax.legend(handles=leg, loc="center left", bbox_to_anchor=(1.0, 0.5), fontsize=9)
-    ax.set_title(f"Flujo de países entre tiers relativos — {YE} a {YM}", x=0.42)
+    M = trans.values.astype(int)               # filas=origen YE, cols=destino YM
+    size_e = M.sum(axis=1)                      # tamaño por tier en YE
+    size_m = M.sum(axis=0)                      # tamaño por tier en YM
+    tiers = [(1, "Desarrollado", T.AZUL), (0, "En desarrollo", T.CORAL)]
+    x0, x1 = 0.0, 1.0
+    fig, ax = plt.subplots(figsize=(8.5, 6))
+    for idx, name, col in tiers:
+        ye_v, ym_v = int(size_e[idx]), int(size_m[idx])
+        ax.plot([x0, x1], [ye_v, ym_v], "-o", color=col, lw=3.5, ms=12,
+                markeredgecolor="white", markeredgewidth=1.6, zorder=3)
+        ax.text(x0 - 0.05, ye_v, f"{name}\n{ye_v}", ha="right", va="center",
+                fontsize=10.5, color=col, fontweight="bold")
+        ax.text(x1 + 0.05, ym_v, f"{ym_v}", ha="left", va="center",
+                fontsize=12, color=col, fontweight="bold")
+    grad, desc = int(M[0, 1]), int(M[1, 0])
+    ax.set_xlim(-0.55, 1.55)
+    ax.set_xticks([x0, x1]); ax.set_xticklabels([str(YE), str(YM)], fontsize=13)
+    ax.set_ylabel("Cantidad de países")
+    ax.set_title(f"Cómo cambió el tamaño de cada grupo — {YE} vs {YM}\n"
+                 f"{grad} ascendieron de tier (catch-up)  ·  "
+                 f"{desc} descendió", fontsize=12)
+    for sp in ("top", "right"):
+        ax.spines[sp].set_visible(False)
+    ax.grid(axis="y", color=T.GRIS_CLARO); ax.set_axisbelow(True)
     fig.tight_layout()
     fig.savefig(config.FIGURES / fname)
     plt.close(fig)

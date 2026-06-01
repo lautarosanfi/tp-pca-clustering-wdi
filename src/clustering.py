@@ -173,13 +173,19 @@ def plot_metrics(mk, gap_df, fname, k_opt=2):
         (axes[1, 1], gap_df["k"], gap_df["gap"], "Gap statistic (↑ mejor)"),
     ]
     for ax, xk, yv, tit in specs:
+        xk = np.asarray(xk); yv = np.asarray(yv)
         ax.plot(xk, yv, "o-", color=LINE, lw=2, ms=6, zorder=3)
-        ax.axvline(k_opt, color=MARK, ls="--", lw=1.6, zorder=2)
+        # resaltar el k elegido con un punto MÁS GRANDE sobre la curva
+        hit = np.where(xk == k_opt)[0]
+        if len(hit):
+            ax.plot(k_opt, yv[hit[0]], "o", ms=17, color=MARK, zorder=5,
+                    markeredgecolor="white", markeredgewidth=1.8)
         ax.set_title(tit); ax.set_xlabel("k")
-    # leyenda única (línea de k elegido)
+    # leyenda única
     axes[1, 2].axis("off")
-    axes[1, 2].plot([], [], color=MARK, ls="--", lw=1.6, label=f"k = {k_opt} (elegido)")
     axes[1, 2].plot([], [], "o-", color=LINE, lw=2, label="Valor de la métrica")
+    axes[1, 2].plot([], [], "o", ms=17, color=MARK, markeredgecolor="white",
+                    markeredgewidth=1.8, label=f"k = {k_opt} (elegido)")
     axes[1, 2].legend(loc="center", fontsize=11)
     fig.suptitle("Selección del número de conglomerados k — criterios internos", fontsize=14)
     fig.tight_layout(rect=[0, 0, 1, 0.97])
@@ -224,6 +230,7 @@ def plot_silhouette(X, labels, k, fname):
         ax.fill_betweenx(np.arange(y_lower, y_upper), 0, vals, alpha=0.9,
                          color=colors[c], label=f"{names[c]}  (n = {(labels==c).sum()})")
         y_lower = y_upper + 6
+    ax.axvline(0, color=T.GRIS_MEDIO, lw=0.9, zorder=1)   # frontera signo
     ax.axvline(avg, color=T.NEGRO, ls="--", lw=1.4,
                label=f"Silhouette promedio = {avg:.3f}")
     ax.set_xlabel("Coeficiente de silhouette")
@@ -245,14 +252,8 @@ def plot_clusters_on_pca(scores, labels, evr, fname, title, iso=None):
         lbl = "ruido" if c == -1 else f"{names.get(c, c)}  (n = {m.sum()})"
         ax.scatter(scores[m, 0], scores[m, 1], s=45, alpha=0.9, label=lbl,
                    color=col, edgecolor="white", lw=0.4)
-    if iso is not None:
-        iso = np.asarray(iso)
-        for code, name in NOTABLES.items():
-            hit = np.where(iso == code)[0]
-            if len(hit):
-                i = hit[0]
-                ax.text(scores[i, 0] + 0.12, scores[i, 1] + 0.12, name,
-                        fontsize=7.5, style="italic", color=T.NEGRO)
+    # (etiquetas de países removidas: ilegibles por superposición; se mejorará
+    #  la identificación más adelante)
     ax.axhline(0, color=T.GRIS_MEDIO, lw=0.6, ls="--")
     ax.axvline(0, color=T.GRIS_MEDIO, lw=0.6, ls="--")
     ax.set_xlabel(f"PC1 — gradiente de desarrollo ({evr[0]*100:.1f}%)")

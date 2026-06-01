@@ -139,13 +139,13 @@ def plot_correlation(year=config.YEAR_MODERN):
 def plot_categoricals(year=config.YEAR_MODERN):
     num, cats = load_wide(year)
     fig, axes = plt.subplots(1, 2, figsize=(15, 5))
-    cats["region"].value_counts().plot.barh(ax=axes[0], color=T.LAVANDA,
+    cats["region"].value_counts().plot.barh(ax=axes[0], color=T.AZUL,
                                              edgecolor="white")
     axes[0].set_title(f"Países por región — {year}")
     axes[0].invert_yaxis()
     inc = cats["income"].value_counts().reindex(T.INCOME_ORDER).dropna()
     axes[1].bar(range(len(inc)), inc.values,
-                color=T.income_palette(inc.index), edgecolor="white")
+                color=T.AZUL, edgecolor="white")    # mismo color que regiones
     axes[1].set_xticks(range(len(inc)))
     axes[1].set_xticklabels([T.INCOME_LABELS.get(i, i) for i in inc.index],
                             rotation=15, fontsize=9)
@@ -166,14 +166,17 @@ def plot_bivariate_by_income(year=config.YEAR_MODERN):
                   for lv in T.INCOME_ORDER]
         bp = ax.boxplot(groups, patch_artist=True, widths=0.6,
                         medianprops=dict(color=T.NEGRO, lw=1.4),
+                        whiskerprops=dict(color=T.GRIS_MEDIO),
+                        capprops=dict(color=T.GRIS_MEDIO),
                         flierprops=dict(marker="o", markersize=3,
                                         markerfacecolor=T.GRIS_MEDIO,
                                         markeredgecolor="none", alpha=0.6))
-        for patch, lv in zip(bp["boxes"], T.INCOME_ORDER):
-            patch.set_facecolor(T.INCOME_COLORS[lv]); patch.set_edgecolor("white")
+        for patch in bp["boxes"]:          # un único color para todas las cajas
+            patch.set_facecolor(T.CELESTE); patch.set_edgecolor(T.AZUL)
+            patch.set_linewidth(1.0); patch.set_alpha(0.9)
         ax.set_xticks(range(1, len(T.INCOME_ORDER) + 1))
         ax.set_xticklabels([T.INCOME_LABELS[lv] for lv in T.INCOME_ORDER],
-                           rotation=15, fontsize=8)
+                           rotation=0, fontsize=9)
         ax.set_title(LABELS[v], fontsize=10)
     fig.suptitle(f"Variables clave por nivel de ingreso — {year}", fontsize=13)
     fig.tight_layout(rect=[0, 0, 1, 0.97])
