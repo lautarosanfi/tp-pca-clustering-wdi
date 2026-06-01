@@ -1,5 +1,5 @@
 """
-Clustering de países (corte 2021).
+Clustering de países (corte config.YEAR_MODERN).
 
 Principio rector (corrige el error de "tandem analysis"):
   - Con ~14 variables NO estamos en alta dimensión. El clustering PRINCIPAL se
@@ -19,8 +19,7 @@ import pandas as pd
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
-import seaborn as sns
-from scipy.cluster.hierarchy import dendrogram, linkage, fcluster
+from scipy.cluster.hierarchy import dendrogram, linkage, fcluster, set_link_color_palette
 from scipy.stats import chi2_contingency
 from sklearn.cluster import KMeans, AgglomerativeClustering, HDBSCAN
 from sklearn.mixture import GaussianMixture
@@ -30,13 +29,17 @@ from sklearn.metrics import (silhouette_score, silhouette_samples,
 from sklearn.decomposition import PCA
 
 try:
-    from . import config, prep
+    from . import config, prep, theme
 except ImportError:
-    import config, prep
+    import config, prep, theme
 
-sns.set_theme(style="whitegrid", context="notebook")
+T = theme
+T.apply_theme()
 LABELS = config.INDICATORS
 RS = config.RANDOM_STATE
+NOTABLES = {"CHN": "China", "USA": "EE.UU.", "IND": "India", "NGA": "Nigeria",
+            "LBN": "Líbano", "SGP": "Singapur", "VEN": "Venezuela", "ETH": "Etiopía",
+            "VNM": "Vietnam"}
 
 
 # --------------------------------------------------------------------------- #
@@ -152,69 +155,102 @@ def profile_clusters(num_raw, labels, cats):
 # --------------------------------------------------------------------------- #
 # Figuras
 # --------------------------------------------------------------------------- #
-def plot_metrics(mk, gap_df, fname):
+def _cluster_style(k):
+    if k <= 2:
+        return T.CLUSTER2_COLORS, T.CLUSTER2_LABELS
+    return T.CLUSTER3_COLORS, T.CLUSTER3_LABELS
+
+
+def plot_metrics(mk, gap_df, fname, k_opt=2):
     fig, axes = plt.subplots(2, 3, figsize=(16, 9))
-    axes[0, 0].plot(mk["k"], mk["inercia"], "o-"); axes[0, 0].set_title("Codo (inercia)")
-    axes[0, 1].plot(mk["k"], mk["silhouette"], "o-", color="#C44E52"); axes[0, 1].set_title("Silhouette (↑ mejor)")
-    axes[0, 2].plot(mk["k"], mk["calinski_harabasz"], "o-", color="#55A868"); axes[0, 2].set_title("Calinski-Harabasz (↑ mejor)")
-    axes[1, 0].plot(mk["k"], mk["davies_bouldin"], "o-", color="#8172B3"); axes[1, 0].set_title("Davies-Bouldin (↓ mejor)")
-    axes[1, 1].errorbar(gap_df["k"], gap_df["gap"], yerr=gap_df["sk"], fmt="o-", color="#CCB974"); axes[1, 1].set_title("Gap statistic (↑ mejor)")
+    specs = [
+        (axes[0, 0], "inercia", "Codo (inercia)", T.LAVANDA, mk),
+        (axes[0, 1], "silhouette", "Silhouette (↑ mejor)", T.CORAL, mk),
+        (axes[0, 2], "calinski_harabasz", "Calinski-Harabasz (↑ mejor)", T.VERDE_AGUA, mk),
+        (axes[1, 0], "davies_bouldin", "Davies-Bouldin (↓ mejor)", T.ROSA, mk),
+    ]
+    for ax, col, tit, color, src in specs:
+        ax.plot(src["k"], src[col], "o-", color=color, lw=2, ms=6)
+        yo = src.loc[src["k"] == k_opt, col]
+        if len(yo):
+            ax.scatter([k_opt], yo, s=140, color=T.NEGRO, zorder=5,
+                       edgecolors="white", lw=1.5, label=f"k = {k_opt} (elegido)")
+        ax.set_title(tit); ax.set_xlabel("k"); ax.legend(fontsize=8)
+    axes[1, 1].errorbar(gap_df["k"], gap_df["gap"], yerr=gap_df["sk"], fmt="o-",
+                        color=T.ARENA, lw=2, ms=6)
+    axes[1, 1].set_title("Gap statistic (↑ mejor)"); axes[1, 1].set_xlabel("k")
     axes[1, 2].axis("off")
-    for ax in axes.ravel()[:5]:
-        ax.set_xlabel("k")
-    fig.suptitle("Selección de k — métricas internas", fontsize=14)
+    fig.suptitle("Selección del número de conglomerados k — criterios internos", fontsize=14)
     fig.tight_layout(rect=[0, 0, 1, 0.97])
-    fig.savefig(config.FIGURES / fname, dpi=config.FIG_DPI)
+    fig.savefig(config.FIGURES / fname)
     plt.close(fig)
 
 
 def plot_dendrogram(X, fname, year=config.YEAR_MODERN):
     Z = linkage(X, method="ward")
+    set_link_color_palette([T.CORAL, T.VERDE_AGUA, T.LAVANDA, T.ROSA])
     fig, ax = plt.subplots(figsize=(14, 6))
-    dendrogram(Z, ax=ax, no_labels=True, color_threshold=None)
+    dendrogram(Z, ax=ax, no_labels=True, color_threshold=Z[-1, 2] * 0.6,
+               above_threshold_color=T.GRIS_MEDIO)
     ax.set_title(f"Dendrograma (Ward) — variables completas, {year}")
     ax.set_xlabel("Países")
     ax.set_ylabel("Distancia de fusión")
     fig.tight_layout()
-    fig.savefig(config.FIGURES / fname, dpi=config.FIG_DPI)
+    fig.savefig(config.FIGURES / fname)
     plt.close(fig)
+    set_link_color_palette(None)
     return Z
 
 
 def plot_silhouette(X, labels, k, fname):
+    colors, names = _cluster_style(k)
     sv = silhouette_samples(X, labels)
     avg = silhouette_score(X, labels)
-    fig, ax = plt.subplots(figsize=(8, 6))
+    fig, ax = plt.subplots(figsize=(8.5, 6))
     y_lower = 0
     for c in range(k):
         vals = np.sort(sv[labels == c])
         y_upper = y_lower + len(vals)
-        ax.fill_betweenx(np.arange(y_lower, y_upper), 0, vals, alpha=0.7)
-        ax.text(-0.05, y_lower + len(vals) / 2, str(c))
-        y_lower = y_upper
-    ax.axvline(avg, color="red", ls="--", label=f"Silhouette medio = {avg:.3f}")
+        ax.fill_betweenx(np.arange(y_lower, y_upper), 0, vals, alpha=0.9,
+                         color=colors[c], label=f"{names[c]}  (n = {(labels==c).sum()})")
+        y_lower = y_upper + 6
+    ax.axvline(avg, color=T.NEGRO, ls="--", lw=1.4,
+               label=f"Silhouette promedio = {avg:.3f}")
     ax.set_xlabel("Coeficiente de silhouette")
-    ax.set_ylabel("Países (ordenados por cluster)")
-    ax.set_title(f"Diagrama de silhouette (k={k})")
-    ax.legend()
+    ax.set_ylabel("Países (ordenados dentro de cada conglomerado)")
+    ax.set_title(f"Diagrama de silhouette (k = {k})")
+    ax.legend(loc="upper right")
     fig.tight_layout()
-    fig.savefig(config.FIGURES / fname, dpi=config.FIG_DPI)
+    fig.savefig(config.FIGURES / fname)
     plt.close(fig)
 
 
-def plot_clusters_on_pca(scores, labels, evr, fname, title):
-    fig, ax = plt.subplots(figsize=(10, 8))
+def plot_clusters_on_pca(scores, labels, evr, fname, title, iso=None):
+    k = len(set(int(c) for c in labels if c != -1))
+    colors, names = _cluster_style(k)
+    fig, ax = plt.subplots(figsize=(10.5, 8))
     for c in sorted(set(labels)):
         m = labels == c
-        lbl = "ruido" if c == -1 else f"Cluster {c}"
-        ax.scatter(scores[m, 0], scores[m, 1], s=40, alpha=0.8, label=lbl,
-                   edgecolor="white", lw=0.3)
-    ax.set_xlabel(f"PC1 ({evr[0]*100:.1f}%)")
-    ax.set_ylabel(f"PC2 ({evr[1]*100:.1f}%)")
+        col = T.GRIS_MEDIO if c == -1 else colors.get(c, T.GRIS)
+        lbl = "ruido" if c == -1 else f"{names.get(c, c)}  (n = {m.sum()})"
+        ax.scatter(scores[m, 0], scores[m, 1], s=45, alpha=0.9, label=lbl,
+                   color=col, edgecolor="white", lw=0.4)
+    if iso is not None:
+        iso = np.asarray(iso)
+        for code, name in NOTABLES.items():
+            hit = np.where(iso == code)[0]
+            if len(hit):
+                i = hit[0]
+                ax.text(scores[i, 0] + 0.12, scores[i, 1] + 0.12, name,
+                        fontsize=7.5, style="italic", color=T.NEGRO)
+    ax.axhline(0, color=T.GRIS_MEDIO, lw=0.6, ls="--")
+    ax.axvline(0, color=T.GRIS_MEDIO, lw=0.6, ls="--")
+    ax.set_xlabel(f"PC1 — gradiente de desarrollo ({evr[0]*100:.1f}%)")
+    ax.set_ylabel(f"PC2 — estructura productiva ({evr[1]*100:.1f}%)")
     ax.set_title(title)
-    ax.legend()
+    ax.legend(title="Conglomerados")
     fig.tight_layout()
-    fig.savefig(config.FIGURES / fname, dpi=config.FIG_DPI)
+    fig.savefig(config.FIGURES / fname)
     plt.close(fig)
 
 
@@ -342,10 +378,13 @@ def run(year=config.YEAR_MODERN):
     plot_dendrogram(X_full, f"clust_dendrograma_{year}.png", year)
     plot_silhouette(X_full, final_lab, 2, f"clust_silhouette_k2_{year}.png")
     plot_silhouette(X_full, lab3, 3, f"clust_silhouette_k3_{year}.png")
+    iso = imp.index.values
     plot_clusters_on_pca(scores_all, final_lab, evr, f"clust_pca_k2_{year}.png",
-                         f"Clusters (k-means, 14 vars, k=2) sobre PC1-PC2 — {year}")
+                         f"Conglomerados (k-means, 14 variables, k=2) sobre PC1-PC2 — {year}",
+                         iso=iso)
     plot_clusters_on_pca(scores_all, lab3, evr, f"clust_pca_k3_{year}.png",
-                         f"Clusters (k-means, 14 vars, k=3) sobre PC1-PC2 — {year}")
+                         f"Conglomerados (k-means, 14 variables, k=3) sobre PC1-PC2 — {year}",
+                         iso=iso)
 
     with open(config.DATA_PROC / f"clustering_resultados_{year}.json", "w", encoding="utf-8") as f:
         json.dump(results, f, ensure_ascii=False, indent=2, default=float)

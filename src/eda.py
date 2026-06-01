@@ -11,17 +11,27 @@ import pandas as pd
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
-import seaborn as sns
+from matplotlib.patches import Patch
 from scipy.stats import skew
 
 try:
-    from . import config
+    from . import config, prep, theme
 except ImportError:
-    import config
+    import config, prep, theme
 
-sns.set_theme(style="whitegrid", context="notebook")
+T = theme
+T.apply_theme()
 
 LABELS = config.INDICATORS
+SHORT = {
+    "NY.GDP.PCAP.KD": "PBI p/c", "NY.GDP.MKTP.KD.ZG": "Crec. PBI",
+    "FP.CPI.TOTL.ZG": "Inflación", "SL.UEM.TOTL.ZS": "Desempleo",
+    "NE.GDI.TOTL.ZS": "Cap. fijo", "NE.EXP.GNFS.ZS": "Export.",
+    "NE.IMP.GNFS.ZS": "Import.", "NV.AGR.TOTL.ZS": "Agricultura",
+    "NV.IND.TOTL.ZS": "Industria", "NV.SRV.TOTL.ZS": "Servicios",
+    "SP.URB.TOTL.IN.ZS": "Urbanización", "SP.DYN.LE00.IN": "Esp. vida",
+    "IT.NET.USER.ZS": "Internet", "EN.GHG.CO2.PC.CE.AR5": "CO2 p/c",
+}
 
 
 def load_wide(year):
@@ -41,8 +51,8 @@ def skewness_table():
         rows.append({
             "variable": v,
             "label": LABELS[v],
-            "skew_2005": round(float(skew(num05[v].dropna())), 3),
-            "skew_2021": round(float(skew(num21[v].dropna())), 3),
+            f"skew_{config.YEAR_EARLY}": round(float(skew(num05[v].dropna())), 3),
+            f"skew_{config.YEAR_MODERN}": round(float(skew(num21[v].dropna())), 3),
             "skew_comb": round(float(skew(comb[v].dropna())), 3),
             "min_comb": round(float(comb[v].min()), 2),
             "max_comb": round(float(comb[v].max()), 2),
@@ -60,28 +70,68 @@ def plot_histograms(year=config.YEAR_MODERN):
     fig, axes = plt.subplots(nrow, ncol, figsize=(16, 3.2 * nrow))
     for ax, v in zip(axes.ravel(), config.INDICATORS_FINAL):
         data = num[v].dropna()
-        ax.hist(data, bins=25, color="#4C72B0", edgecolor="white")
-        ax.set_title(f"{LABELS[v]}\nskew={skew(data):.2f}", fontsize=9)
+        ax.hist(data, bins=25, color=T.VERDE_AGUA, edgecolor="white", linewidth=0.6)
+        ax.set_title(f"{LABELS[v]}\nasimetría = {skew(data):.2f}", fontsize=9)
         ax.tick_params(labelsize=8)
     for ax in axes.ravel()[n:]:
         ax.axis("off")
     fig.suptitle(f"Distribuciones univariadas — {year}", fontsize=14)
     fig.tight_layout(rect=[0, 0, 1, 0.98])
-    fig.savefig(config.FIGURES / f"eda_histogramas_{year}.png", dpi=config.FIG_DPI)
+    fig.savefig(config.FIGURES / f"eda_histogramas_{year}.png")
     plt.close(fig)
 
 
 def plot_correlation(year=config.YEAR_MODERN):
+    """Matriz de correlación de Pearson sobre las variables TRANSFORMADAS, con
+    histogramas en la diagonal. Pearson sobre transformadas es coherente con el
+    PCA (que también opera sobre las variables transformadas y estandarizadas)."""
     num, _ = load_wide(year)
-    corr = num.corr(method="pearson")
-    short = [LABELS[v][:22] for v in corr.columns]
-    fig, ax = plt.subplots(figsize=(11, 9))
-    sns.heatmap(corr, annot=True, fmt=".2f", cmap="RdBu_r", center=0,
-                vmin=-1, vmax=1, xticklabels=short, yticklabels=short,
-                annot_kws={"size": 7}, cbar_kws={"shrink": 0.8}, ax=ax)
-    ax.set_title(f"Matriz de correlación de Pearson — {year}")
-    fig.tight_layout()
-    fig.savefig(config.FIGURES / f"eda_correlacion_{year}.png", dpi=config.FIG_DPI)
+    pre = prep.Preprocessor().fit(num)
+    tdf = pre.transform(num)            # transformadas+estandarizadas (corr invariante)
+    cols = config.INDICATORS_FINAL
+    corr = tdf[cols].corr(method="pearson").values
+    n = len(cols)
+
+    fig, axes = plt.subplots(n, n, figsize=(16, 14.5))
+    plt.subplots_adjust(hspace=0.07, wspace=0.07)
+    for i in range(n):
+        for j in range(n):
+            ax = axes[i, j]
+            ax.set_xticks([]); ax.set_yticks([])
+            for sp in ax.spines.values():
+                sp.set_linewidth(0.25); sp.set_color("#d9d9d9")
+            if i == j:
+                ax.hist(tdf[cols[i]].dropna(), bins=16, color=T.VERDE_AGUA,
+                        alpha=0.85, linewidth=0)
+                ax.set_facecolor(T.NEUTRO)
+            elif i < j:
+                r = corr[i, j]
+                ax.set_facecolor(T.DIVERGING((r + 1) / 2))
+                ax.text(0.5, 0.5, f"{r:.2f}", ha="center", va="center",
+                        fontsize=7, fontweight="bold", transform=ax.transAxes,
+                        color="white" if abs(r) > 0.5 else T.NEGRO)
+            else:
+                ax.set_facecolor("white")
+                for sp in ax.spines.values():
+                    sp.set_visible(False)
+            if j == 0:
+                ax.set_ylabel(SHORT[cols[i]], fontsize=7, rotation=0,
+                              ha="right", va="center", labelpad=38)
+            if i == n - 1:
+                ax.set_xlabel(SHORT[cols[j]], fontsize=7, rotation=40,
+                              ha="right", va="top")
+    leg = [
+        Patch(facecolor=T.DIV_POS, label="Correlación positiva"),
+        Patch(facecolor=T.DIV_NEG, label="Correlación negativa"),
+        Patch(facecolor=T.NEUTRO, label="Distribución marginal (diagonal)"),
+    ]
+    fig.legend(handles=leg, loc="lower center", ncol=3, fontsize=9,
+               bbox_to_anchor=(0.5, -0.01))
+    fig.suptitle(
+        f"Correlaciones de Pearson entre las 14 variables transformadas — {year}\n"
+        "Triángulo superior: coeficiente r  ·  Diagonal: distribución de cada variable",
+        fontsize=13, y=1.01)
+    fig.savefig(config.FIGURES / f"eda_correlacion_{year}.png")
     plt.close(fig)
     return corr
 
@@ -89,16 +139,19 @@ def plot_correlation(year=config.YEAR_MODERN):
 def plot_categoricals(year=config.YEAR_MODERN):
     num, cats = load_wide(year)
     fig, axes = plt.subplots(1, 2, figsize=(15, 5))
-    cats["region"].value_counts().plot.barh(ax=axes[0], color="#55A868")
+    cats["region"].value_counts().plot.barh(ax=axes[0], color=T.LAVANDA,
+                                             edgecolor="white")
     axes[0].set_title(f"Países por región — {year}")
     axes[0].invert_yaxis()
-    order = ["Low income", "Lower middle income", "Upper middle income", "High income"]
-    inc = cats["income"].value_counts().reindex(order).dropna()
-    inc.plot.bar(ax=axes[1], color="#C44E52")
+    inc = cats["income"].value_counts().reindex(T.INCOME_ORDER).dropna()
+    axes[1].bar(range(len(inc)), inc.values,
+                color=T.income_palette(inc.index), edgecolor="white")
+    axes[1].set_xticks(range(len(inc)))
+    axes[1].set_xticklabels([T.INCOME_LABELS.get(i, i) for i in inc.index],
+                            rotation=15, fontsize=9)
     axes[1].set_title(f"Países por nivel de ingreso — {year}")
-    axes[1].tick_params(axis="x", rotation=20, labelsize=8)
     fig.tight_layout()
-    fig.savefig(config.FIGURES / f"eda_categoricas_{year}.png", dpi=config.FIG_DPI)
+    fig.savefig(config.FIGURES / f"eda_categoricas_{year}.png")
     plt.close(fig)
 
 
@@ -106,25 +159,32 @@ def plot_bivariate_by_income(year=config.YEAR_MODERN):
     """Boxplots de variables clave por nivel de ingreso (numérica x categórica)."""
     num, cats = load_wide(year)
     df = num.join(cats)
-    order = ["Low income", "Lower middle income", "Upper middle income", "High income"]
     keyvars = ["NY.GDP.PCAP.KD", "SP.DYN.LE00.IN", "IT.NET.USER.ZS", "NV.AGR.TOTL.ZS"]
     fig, axes = plt.subplots(2, 2, figsize=(14, 9))
     for ax, v in zip(axes.ravel(), keyvars):
-        sns.boxplot(data=df, x="income", y=v, order=order, ax=ax,
-                    palette="viridis", hue="income", legend=False)
+        groups = [df.loc[df["income"] == lv, v].dropna().values
+                  for lv in T.INCOME_ORDER]
+        bp = ax.boxplot(groups, patch_artist=True, widths=0.6,
+                        medianprops=dict(color=T.NEGRO, lw=1.4),
+                        flierprops=dict(marker="o", markersize=3,
+                                        markerfacecolor=T.GRIS_MEDIO,
+                                        markeredgecolor="none", alpha=0.6))
+        for patch, lv in zip(bp["boxes"], T.INCOME_ORDER):
+            patch.set_facecolor(T.INCOME_COLORS[lv]); patch.set_edgecolor("white")
+        ax.set_xticks(range(1, len(T.INCOME_ORDER) + 1))
+        ax.set_xticklabels([T.INCOME_LABELS[lv] for lv in T.INCOME_ORDER],
+                           rotation=15, fontsize=8)
         ax.set_title(LABELS[v], fontsize=10)
-        ax.set_xlabel("")
-        ax.tick_params(axis="x", rotation=20, labelsize=8)
     fig.suptitle(f"Variables clave por nivel de ingreso — {year}", fontsize=13)
     fig.tight_layout(rect=[0, 0, 1, 0.97])
-    fig.savefig(config.FIGURES / f"eda_boxplots_ingreso_{year}.png", dpi=config.FIG_DPI)
+    fig.savefig(config.FIGURES / f"eda_boxplots_ingreso_{year}.png")
     plt.close(fig)
 
 
 def check_sector_closure():
     """¿agr+ind+srv suman ~constante? (cierre composicional / colinealidad)."""
-    num21, _ = load_wide(config.YEAR_MODERN)
-    s = num21[["NV.AGR.TOTL.ZS", "NV.IND.TOTL.ZS", "NV.SRV.TOTL.ZS"]].sum(axis=1)
+    num, _ = load_wide(config.YEAR_MODERN)
+    s = num[["NV.AGR.TOTL.ZS", "NV.IND.TOTL.ZS", "NV.SRV.TOTL.ZS"]].sum(axis=1)
     return s.describe()
 
 
@@ -136,7 +196,7 @@ def main():
     print(sk.to_string(index=False))
     sk.to_csv(config.DATA_PROC / "skewness.csv", index=False, encoding="utf-8")
 
-    print("\n== Cierre composicional sectorial (agr+ind+srv), 2021 ==")
+    print(f"\n== Cierre composicional sectorial (agr+ind+srv), {config.YEAR_MODERN} ==")
     print(check_sector_closure().round(2).to_string())
 
     for year in (config.YEAR_MODERN, config.YEAR_EARLY):

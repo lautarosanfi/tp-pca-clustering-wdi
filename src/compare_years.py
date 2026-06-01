@@ -24,17 +24,18 @@ import pandas as pd
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
-import seaborn as sns
+from matplotlib.lines import Line2D
 from sklearn.decomposition import PCA
 from sklearn.cluster import KMeans
 from sklearn.metrics import adjusted_rand_score
 
 try:
-    from . import config, prep
+    from . import config, prep, theme
 except ImportError:
-    import config, prep
+    import config, prep, theme
 
-sns.set_theme(style="whitegrid", context="notebook")
+T = theme
+T.apply_theme()
 LABELS = config.INDICATORS
 RS = config.RANDOM_STATE
 
@@ -176,6 +177,8 @@ def run():
     _plot_transition(trans, "compare_transiciones.png")
     _plot_loadings_compare(load05["PC1"], load21["PC1"], cols, "compare_loadings_pc1.png")
     _plot_decomposicion(dec, "compare_descomposicion_dPC1.png")
+    _plot_transicion_sankey(trans, "compare_transicion_sankey.png")
+    _plot_transicion_waffle(traj, "compare_transicion_waffle.png")
 
     out = {
         "anio_early": config.YEAR_EARLY,
@@ -196,72 +199,224 @@ def run():
 
 
 def _plot_trajectories(traj, evr, fname):
+    """Top 5 avances y top 5 retrocesos en PC1, sobre la nube de todos los países."""
     YE, YM = config.YEAR_EARLY, config.YEAR_MODERN
-    # destacar los mayores movimientos + algunos países conocidos
-    big = traj.reindex(traj["dPC1"].abs().sort_values(ascending=False).index).head(12)
-    known = [c for c in ["CHN", "IND", "VNM", "KOR", "POL", "RWA", "ETH", "BGD"]
-             if c in traj.index]
-    sel = sorted(set(big.index) | set(known))
+    mejores = traj.nlargest(5, "dPC1")
+    peores = traj.nsmallest(5, "dPC1")
     fig, ax = plt.subplots(figsize=(12, 9))
-    ax.scatter(traj["PC1_e"], traj["PC2_e"], s=12, color="#BBBBBB",
-               alpha=0.5, label=str(YE))
-    ax.scatter(traj["PC1_m"], traj["PC2_m"], s=12, color="#4C72B0",
-               alpha=0.5, label=str(YM))
-    for iso in sel:
-        r = traj.loc[iso]
-        ax.annotate("", xy=(r["PC1_m"], r["PC2_m"]),
-                    xytext=(r["PC1_e"], r["PC2_e"]),
-                    arrowprops=dict(arrowstyle="->", color="#C44E52", lw=1.3, alpha=0.8))
-        ax.text(r["PC1_m"], r["PC2_m"], iso, fontsize=7)
-    ax.set_xlabel(f"PC1 ({evr[0]*100:.1f}%) — gradiente de desarrollo")
-    ax.set_ylabel(f"PC2 ({evr[1]*100:.1f}%) — estructura productiva")
-    ax.set_title(f"Trayectorias {YE}→{YM} en el espacio PCA común (países destacados)")
-    ax.legend()
+    # nube de contexto (todos los países, ambos años, tenue)
+    ax.scatter(traj["PC1_e"], traj["PC2_e"], s=10, color=T.GRIS_CLARO, zorder=1)
+    ax.scatter(traj["PC1_m"], traj["PC2_m"], s=10, color=T.GRIS_MEDIO, alpha=0.5, zorder=1)
+
+    def _arrow(r, color):
+        ax.scatter(r["PC1_e"], r["PC2_e"], s=45, color=T.GRIS_MEDIO,
+                   edgecolor="white", lw=0.8, zorder=3)
+        ax.annotate("", xy=(r["PC1_m"], r["PC2_m"]), xytext=(r["PC1_e"], r["PC2_e"]),
+                    arrowprops=dict(arrowstyle="-|>", color=color, lw=2.0,
+                                    mutation_scale=14), zorder=4)
+        ax.scatter(r["PC1_m"], r["PC2_m"], s=70, color=color,
+                   edgecolor="white", lw=1.0, zorder=5)
+        ax.text(r["PC1_m"] + 0.15, r["PC2_m"] + 0.15, r["country"], fontsize=8.5,
+                color=color, fontweight="bold", zorder=6)
+
+    for _, r in mejores.iterrows():
+        _arrow(r, T.DIV_POS)
+    for _, r in peores.iterrows():
+        _arrow(r, T.DIV_NEG)
+
+    ax.axhline(0, color=T.GRIS_CLARO, lw=1.0, ls="--")
+    ax.axvline(0, color=T.GRIS_CLARO, lw=1.0, ls="--")
+    ax.set_xlabel(f"PC1 — gradiente de desarrollo ({evr[0]*100:.1f}%)")
+    ax.set_ylabel(f"PC2 — estructura productiva ({evr[1]*100:.1f}%)")
+    ax.set_title(f"Mayores avances y retrocesos en el gradiente de desarrollo — {YE} a {YM}")
+    handles = [
+        Line2D([0], [0], marker="o", color="w", markerfacecolor=T.GRIS_MEDIO, ms=8,
+               label=f"Posición en {YE}"),
+        Line2D([0], [0], marker=">", color=T.DIV_POS, lw=2, ms=8, label="Top 5 — mayor avance"),
+        Line2D([0], [0], marker=">", color=T.DIV_NEG, lw=2, ms=8, label="Top 5 — mayor retroceso"),
+    ]
+    ax.legend(handles=handles, loc="lower right")
     fig.tight_layout()
-    fig.savefig(config.FIGURES / fname, dpi=config.FIG_DPI)
+    fig.savefig(config.FIGURES / fname)
     plt.close(fig)
 
 
 def _plot_transition(trans, fname):
-    fig, ax = plt.subplots(figsize=(6, 5))
-    sns.heatmap(trans, annot=True, fmt="d", cmap="Blues", cbar=False, ax=ax)
-    ax.set_title(f"Transiciones de cluster {config.YEAR_EARLY} → {config.YEAR_MODERN}\n"
-                 "(0=menos desarrollado, 1=más desarrollado)")
+    """Heatmap 2x2 con colores semánticos (permaneció / graduó / regresó)."""
+    YE, YM = config.YEAR_EARLY, config.YEAR_MODERN
+    fig, ax = plt.subplots(figsize=(6.2, 5.2))
+    n = trans.shape[0]
+    for i in range(n):
+        for j in range(n):
+            val = int(trans.iloc[i, j])
+            if i == j:
+                color = T.VERDE_AGUA if i == 1 else T.CORAL
+            elif j > i:
+                color = T.LIMA          # graduó (subió de grupo)
+            else:
+                color = T.DIV_NEG       # regresó
+            ax.add_patch(plt.Rectangle((j, n - 1 - i), 1, 1, facecolor=color,
+                                       edgecolor="white", lw=2))
+            ax.text(j + 0.5, n - 1 - i + 0.5, str(val), ha="center", va="center",
+                    fontsize=15, fontweight="bold", color="white")
+    ax.set_xlim(0, n); ax.set_ylim(0, n); ax.set_aspect("equal")
+    ax.set_xticks([x + 0.5 for x in range(n)])
+    ax.set_yticks([y + 0.5 for y in range(n)])
+    ax.set_xticklabels(["En desarrollo", "Desarrollado"], fontsize=9)
+    ax.set_yticklabels(["Desarrollado", "En desarrollo"], fontsize=9)
+    ax.set_xlabel(f"Grupo en {YM}"); ax.set_ylabel(f"Grupo en {YE}")
+    ax.tick_params(length=0)
+    for sp in ax.spines.values():
+        sp.set_visible(False)
+    ax.set_title(f"Transiciones de conglomerado {YE} → {YM}")
     fig.tight_layout()
-    fig.savefig(config.FIGURES / fname, dpi=config.FIG_DPI)
+    fig.savefig(config.FIGURES / fname)
     plt.close(fig)
 
 
 def _plot_decomposicion(dec, fname):
     YE, YM = config.YEAR_EARLY, config.YEAR_MODERN
-    d = dec.sort_values("contrib_a_dPC1")
-    colors = ["#C44E52" if x < 0 else "#4C72B0" for x in d["contrib_a_dPC1"]]
-    fig, ax = plt.subplots(figsize=(10, 7))
-    ax.barh(d["variable"], d["contrib_a_dPC1"], color=colors)
-    ax.axvline(0, color="gray", lw=0.8)
-    ax.set_xlabel("Contribución al avance medio en PC1 (unidades de score)")
-    ax.set_title(f"¿Qué variables explican el avance medio en PC1 ({YE}→{YM})?\n"
+    d = dec.sort_values("pct_del_total")
+    colors = [T.NEG_FILL if x < 0 else T.POS_FILL for x in d["pct_del_total"]]
+    fig, ax = plt.subplots(figsize=(10, 6.5))
+    ax.barh(d["variable"], d["pct_del_total"], color=colors, edgecolor="white")
+    ax.axvline(0, color=T.NEGRO, lw=0.8)
+    ax.set_xlabel("Contribución al avance medio en PC1 (%)")
+    ax.set_title(f"¿Qué explica el avance de los países entre {YE} y {YM}?\n"
                  "Internet y esperanza de vida dominan; el PBI per cápita (real) aporta poco")
-    for y, (v, p) in enumerate(zip(d["contrib_a_dPC1"], d["pct_del_total"])):
-        ax.text(v + (0.005 if v >= 0 else -0.005), y, f"{p:.0f}%",
-                va="center", ha="left" if v >= 0 else "right", fontsize=8)
+    for y, p in enumerate(d["pct_del_total"]):
+        ax.text(p + (0.6 if p >= 0 else -0.6), y, f"{p:.1f}%", va="center",
+                ha="left" if p >= 0 else "right", fontsize=8.5, fontweight="bold",
+                color=T.DIV_POS if p >= 0 else T.DIV_NEG)
     fig.tight_layout()
-    fig.savefig(config.FIGURES / fname, dpi=config.FIG_DPI)
+    fig.savefig(config.FIGURES / fname)
     plt.close(fig)
 
 
 def _plot_loadings_compare(l05, l21, cols, fname):
-    fig, ax = plt.subplots(figsize=(9, 7))
-    ax.scatter(l05, l21, color="#4C72B0")
-    lim = [min(l05.min(), l21.min()) - 0.1, max(l05.max(), l21.max()) + 0.1]
-    ax.plot(lim, lim, "--", color="gray")
+    YE, YM = config.YEAR_EARLY, config.YEAR_MODERN
+    fig, ax = plt.subplots(figsize=(9, 7.5))
+    lim = [min(l05.min(), l21.min()) - 0.12, max(l05.max(), l21.max()) + 0.12]
+    ax.plot(lim, lim, "--", color=T.GRIS_MEDIO)
+    ax.scatter(l05, l21, s=45, color=T.VERDE_AGUA, edgecolor="white", lw=0.6, zorder=3)
     for v in cols:
-        ax.text(l05[v], l21[v], LABELS[v][:14], fontsize=7)
-    ax.set_xlabel(f"Carga en PC1 ({config.YEAR_EARLY})")
-    ax.set_ylabel(f"Carga en PC1 ({config.YEAR_MODERN})")
-    ax.set_title("Estabilidad de la estructura: cargas de PC1 por año")
+        ax.text(l05[v] + 0.01, l21[v] + 0.01, LABELS[v][:16], fontsize=7, color=T.NEGRO)
+    ax.set_xlim(lim); ax.set_ylim(lim)
+    ax.set_xlabel(f"Carga en PC1 ({YE})")
+    ax.set_ylabel(f"Carga en PC1 ({YM})")
+    ax.set_title("Estabilidad de la estructura: cargas de PC1 por año\n"
+                 "(los puntos sobre la diagonal indican un eje estable)")
     fig.tight_layout()
-    fig.savefig(config.FIGURES / fname, dpi=config.FIG_DPI)
+    fig.savefig(config.FIGURES / fname)
+    plt.close(fig)
+
+
+def _plot_transicion_sankey(trans, fname):
+    """Diagrama de flujo (Sankey) leyendo los conteos reales de `trans`
+    (filas = grupo de origen, columnas = grupo de destino)."""
+    from matplotlib.path import Path
+    from matplotlib.patches import PathPatch, Rectangle
+    YE, YM = config.YEAR_EARLY, config.YEAR_MODERN
+    M = trans.values.astype(float)             # 2x2: [origen, destino]
+    total = M.sum()
+    scale = 10.0 / total
+    row_tot = M.sum(axis=1); col_tot = M.sum(axis=0)
+    X_L0, X_L1, X_R0, X_R1 = 0.0, 1.2, 4.8, 6.0
+    XM = (X_L1 + X_R0) / 2
+    flow_color = {(0, 0): T.CORAL, (1, 1): T.VERDE_AGUA,
+                  (0, 1): T.LIMA, (1, 0): T.DIV_NEG}
+
+    def bezier(ax, yl_lo, yl_hi, yr_lo, yr_hi, color):
+        verts = [(X_L1, yl_hi), (XM, yl_hi), (XM, yr_hi), (X_R0, yr_hi),
+                 (X_R0, yr_lo), (XM, yr_lo), (XM, yl_lo), (X_L1, yl_lo), (X_L1, yl_hi)]
+        codes = [Path.MOVETO, Path.CURVE4, Path.CURVE4, Path.CURVE4, Path.LINETO,
+                 Path.CURVE4, Path.CURVE4, Path.CURVE4, Path.CLOSEPOLY]
+        ax.add_patch(PathPatch(Path(verts, codes), facecolor=color, alpha=0.55,
+                               edgecolor="none"))
+
+    fig, ax = plt.subplots(figsize=(10, 7))
+    ax.set_xlim(-0.5, 7.8); ax.set_ylim(-1.0, 11.5); ax.axis("off")
+    bar_col = {0: T.CORAL, 1: T.VERDE_AGUA}
+    # cursores de apilado (de abajo hacia arriba): orden de grupos 1 (desarrollado) abajo, 0 arriba
+    grp_order = [1, 0]
+    left_cur = {}; right_cur = {}
+    y = 0.0
+    for g in grp_order:
+        left_cur[g] = y
+        ax.add_patch(Rectangle((X_L0, y), X_L1 - X_L0, row_tot[g] * scale,
+                               facecolor=bar_col[g], edgecolor="white", lw=1.5))
+        ax.text((X_L0 + X_L1) / 2, y + row_tot[g] * scale / 2, f"{int(row_tot[g])}",
+                ha="center", va="center", color="white", fontweight="bold")
+        y += row_tot[g] * scale
+    y = 0.0
+    for g in grp_order:
+        right_cur[g] = y
+        ax.add_patch(Rectangle((X_R0, y), X_R1 - X_R0, col_tot[g] * scale,
+                               facecolor=bar_col[g], edgecolor="white", lw=1.5))
+        ax.text((X_R0 + X_R1) / 2, y + col_tot[g] * scale / 2, f"{int(col_tot[g])}",
+                ha="center", va="center", color="white", fontweight="bold")
+        y += col_tot[g] * scale
+    # flujos i->j
+    for i in grp_order:
+        for j in grp_order:
+            w = M[i, j] * scale
+            if w <= 0:
+                continue
+            yl = left_cur[i]; yr = right_cur[j]
+            bezier(ax, yl, yl + w, yr, yr + w, flow_color[(i, j)])
+            left_cur[i] += w; right_cur[j] += w
+    ax.text((X_L0 + X_L1) / 2, 10.5, str(YE), ha="center", fontsize=12, fontweight="bold")
+    ax.text((X_R0 + X_R1) / 2, 10.5, str(YM), ha="center", fontsize=12, fontweight="bold")
+    leg = [
+        Line2D([0], [0], color=T.LIMA, lw=8, label="Graduó al grupo desarrollado"),
+        Line2D([0], [0], color=T.VERDE_AGUA, lw=8, label="Permaneció desarrollado"),
+        Line2D([0], [0], color=T.CORAL, lw=8, label="Permaneció en desarrollo"),
+    ]
+    if M[1, 0] > 0:
+        leg.append(Line2D([0], [0], color=T.DIV_NEG, lw=8, label="Retrocedió de grupo"))
+    ax.legend(handles=leg, loc="center left", bbox_to_anchor=(1.0, 0.5), fontsize=9)
+    ax.set_title(f"Flujo de países entre grupos — {YE} a {YM}", x=0.42)
+    fig.tight_layout()
+    fig.savefig(config.FIGURES / fname)
+    plt.close(fig)
+
+
+def _plot_transicion_waffle(traj, fname):
+    """Waffle comparativo: 1 cuadro = 1 país, distribución por grupo en cada año."""
+    from matplotlib.patches import FancyBboxPatch, Patch
+    YE, YM = config.YEAR_EARLY, config.YEAR_MODERN
+    total = len(traj)
+    dist = {
+        YE: {0: int((traj["cluster_e"] == 0).sum()), 1: int((traj["cluster_e"] == 1).sum())},
+        YM: {0: int((traj["cluster_m"] == 0).sum()), 1: int((traj["cluster_m"] == 1).sum())},
+    }
+    COLS_W = 15
+    ROWS_W = int(np.ceil(total / COLS_W))
+    SIZE, GAP = 0.82, 0.12
+    STEP = SIZE + GAP
+    fig, axes = plt.subplots(1, 2, figsize=(11, 6))
+    for ax, year in zip(axes, [YE, YM]):
+        ax.set_xlim(-0.3, COLS_W * STEP); ax.set_ylim(-0.4, ROWS_W * STEP + 0.6)
+        ax.axis("off")
+        n0, n1 = dist[year][0], dist[year][1]
+        seq = [T.CORAL] * n0 + [T.VERDE_AGUA] * n1 + [T.GRIS_CLARO] * (COLS_W * ROWS_W - total)
+        for idx, color in enumerate(seq):
+            col = idx % COLS_W; row = idx // COLS_W
+            x = col * STEP; yy = (ROWS_W - 1 - row) * STEP
+            ax.add_patch(FancyBboxPatch((x, yy), SIZE, SIZE, boxstyle="round,pad=0.06",
+                                        facecolor=color,
+                                        edgecolor="white" if color != T.GRIS_CLARO else "#e0e0e0",
+                                        lw=0.8))
+        ax.set_title(str(year), fontsize=15, color=T.DIV_POS, pad=8)
+        ax.text(COLS_W * STEP / 2, -0.2, f"En desarrollo: {n0}   |   Desarrollado: {n1}",
+                ha="center", va="top", fontsize=9, color=T.NEGRO)
+    leg = [Patch(facecolor=T.CORAL, label="En desarrollo"),
+           Patch(facecolor=T.VERDE_AGUA, label="Desarrollado")]
+    fig.legend(handles=leg, loc="lower center", ncol=2, fontsize=10,
+               bbox_to_anchor=(0.5, -0.03))
+    fig.suptitle("Distribución de países por grupo — cada cuadro = 1 país", fontsize=13, y=1.0)
+    fig.tight_layout()
+    fig.savefig(config.FIGURES / fname)
     plt.close(fig)
 
 

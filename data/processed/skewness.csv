@@ -1,4 +1,4 @@
-variable,label,skew_2005,skew_2021,skew_comb,min_comb,max_comb,tiene_negativos,tiene_ceros
+variable,label,skew_2005,skew_2023,skew_comb,min_comb,max_comb,tiene_negativos,tiene_ceros
 NY.GDP.PCAP.KD,PBI per capita (US$ const. 2015),2.011,2.113,2.137,250.88,115124.72,False,False
 NY.GDP.MKTP.KD.ZG,Crecimiento anual del PBI (%),0.847,5.572,4.731,-29.43,75.31,True,False
 FP.CPI.TOTL.ZG,Inflacion anual al consumidor (%),2.276,7.386,9.559,-4.64,221.34,True,False
