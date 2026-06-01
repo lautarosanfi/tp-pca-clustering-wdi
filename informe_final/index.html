@@ -129,12 +129,12 @@
         excluyen agregaciones como regiónes, grupos de ingreso o el total mundial,
         porque no son unidades comparables con países individuales y distorsionarian
         tanto el PCA como las distancias del clustering. Luego de ese filtrado se
-        trabaja con países reales identificados por codigo ISO-3.
+        trabaja con países reales identificados por código ISO-3.
       </p>
       <p>
         El corte principal es 2023. Esta decisión no se tomó solamente por ser el año
         más reciente con buena disponibilidad, sino porque evita dos años
-        macroeconómicamente atipicos: 2021, dominado por el rebote posterior a la
+        macroeconómicamente atípicos: 2021, dominado por el rebote posterior a la
         pandemia, y 2022, afectado por el shock inflaciónario global y la guerra en
         Ucrania. En métodos basados en varianzas, correlaciones y distancias, esos
         shocks pueden modificar artificialmente la importancia de variables como el
@@ -219,11 +219,11 @@
       <h3>Faltantes, transformaciones y estandarización</h3>
       <p>
         Luego de aplicar un filtro por país, se conservan 192 países en 2005 y 191 en
-        2023. El maximo de faltantes por variable queda por debajo del 15% en 2005 y
+        2023. El máximo de faltantes por variable queda por debajo del 15% en 2005 y
         del 12% en 2023, niveles razonables para imputar sin que la imputación domine
         el análisis. La imputación se realiza con vecinos más cercanos sobre variables
         ya estandarizadas, porque las distancias solo tienen sentido si dólares, años,
-        porcentajes y toneladas estan puestos en una escala común. Ademas, se imputa
+        porcentajes y toneladas están puestos en una escala común. Además, se imputa
         cada año por separado para no usar información de 2023 al completar datos de
         2005.
       </p>
@@ -251,7 +251,7 @@
         constantes de 2015, con mediana de 6.408. Esa distribución extremadamente
         asimétrica confirma que las diferencias entre países son más proporcionales
         que aditivas, por lo que el logaritmo es apropiado. Internet, en cambio, es
-        una proporcion acotada: su mediana llega a 81,3% en 2023, pero todavia existen
+        una proporción acotada: su mediana llega a 81,3% en 2023, pero todavía existen
         países por debajo del 10%. La esperanza de vida tiene un rango más acotado,
         entre 54,5 y 85,7 años, y la urbanización va de 15,1% a 100%.
       </p>
@@ -289,8 +289,8 @@
         <img src="figures/eda_correlacion_2023.png" alt="Matriz de correlación de variables transformadas en 2023" loading="lazy">
         <figcaption>
           <strong>Figura 2.</strong> Correlaciones de Pearson entre variables transformadas.
-          La asociacion positiva entre ingreso, salud, conectividad y urbanización, junto
-          con la asociacion negativa con agricultura, sugiere una dimensión común de
+          La asociación positiva entre ingreso, salud, conectividad y urbanización, junto
+          con la asociación negativa con agricultura, sugiere una dimensión común de
           desarrollo.
         </figcaption>
       </figure>
@@ -330,7 +330,7 @@
       <h2>Análisis de Componentes Principales</h2>
       <p>
         El PCA se aplica sobre las variables transformadas, estandarizadas e imputadas.
-        Esta preparacion es indispensable: las variables estan en unidades distintas y
+        Esta preparación es indispensable: las variables están en unidades distintas y
         no tendría sentido permitir que el PBI per cápita domine solamente porque se
         mide en dólares, o que una variable porcentual pese menos por tener menor
         escala nominal. Al trabajar con variables estandarizadas, el PCA equivale a
@@ -483,7 +483,7 @@
         previa obligatoria. Por eso la partición principal se calcula sobre las 14
         variables transformadas y estandarizadas. Luego se compara contra la partición
         obtenida sobre los componentes retenidos. Para k = 2, ambas particiones son
-        identicas segun el índice de Rand ajustado (ARI = 1,000). La conclusion es
+        idénticas según el índice de Rand ajustado (ARI = 1,000). La conclusión es
         importante: en este caso el uso de PCA antes de clusterizar no hubiera sesgado
         el resultado principal, pero esa equivalencia fue verificada y no asumida.
       </p>
@@ -494,7 +494,7 @@
         punto de partida porque trabaja con distancia euclídea en un espacio numerico
         estandarizado y produce centros interpretables. Ward sirve como contraste
         jerárquico porque minimiza la varianza intragrupo al fusionar clusters. El
-        número de conglomerados se elige por consenso entre metricas internas,
+        número de conglomerados se elige por consenso entre métricas internas,
         estadistico gap y estabilidad por remuestreo. La convergencia favorece k = 2:
         silhouette, Calinski-Harabasz, Davies-Bouldin y gap apuntan a dos grupos. La
         estabilidad bootstrap es muy alta para k = 2, con Jaccard medio de 0,96 y 0,94
@@ -504,7 +504,7 @@
 
       <div class="figure-grid">
         <figure class="figure-card" data-chart-id="cluster-metricas" data-static-src="figures/clust_metricas_k_2023.png">
-          <img src="figures/clust_metricas_k_2023.png" alt="Metricas internas para selección de k" loading="lazy">
+          <img src="figures/clust_metricas_k_2023.png" alt="Métricas internas para selección de k" loading="lazy">
           <figcaption>
             <strong>Figura 9.</strong> Criterios internos para elegir k. La evidencia
             converge en dos conglomerados como partición principal.
@@ -525,8 +525,8 @@
         comporta más como un continuo que como un conjunto de bloques perfectamente
         separados. Metodos alternativos refuerzan esta interpretación. Un modelo de
         mezclas gaussianas coincide de forma moderada con k-means (ARI = 0,623), y
-        HDBSCAN identifica dos nucleos densos pero deja aproximadamente 59,2% de los
-        países como ruido. En otras palabras, el clustering ofrece una macro-separacion
+        HDBSCAN identifica dos núcleos densos pero deja aproximadamente 59,2% de los
+        países como ruido. En otras palabras, el clustering ofrece una macro-separación
         útil entre países desarrollados y países en vias de desarrollo, pero no debe
         presentarse como una taxonomia natural y cerrada.
       </p>
@@ -578,7 +578,7 @@
 
       <p>
         Al cruzar los grupos con el nivel de ingreso oficial del Banco Mundial aparece
-        una asociacion muy fuerte: chi-cuadrado de 135,8 con p aproximadamente
+        una asociación muy fuerte: chi-cuadrado de 135,8 con p aproximadamente
         2,2 x 10^-28 para k = 2. El grupo en vias de desarrollo incluye 20 países de
         bajo ingreso y 42 de ingreso medio-bajo; el grupo desarrollado contiene 66 de
         los 67 países de ingreso alto y 47 de ingreso medio-alto. Las excepciones son
@@ -645,7 +645,7 @@
       <p>
         La medida relativa usa dos lecturas. La primera clasifica países dentro de cada
         año en dos tiers, de modo que "desarrollado en 2005" significa desarrollado
-        respecto de los países de 2005, no respecto de los estandares de 2023. Con este
+        respecto de los países de 2005, no respecto de los estándares de 2023. Con este
         criterio hay 107 países desarrollados sobre 192 en 2005 y 121 sobre 191 en
         2023. La segunda lectura rankea a cada país por percentil de PC1 dentro de su
         propio año. El cambio de percentil muestra si un país gano o perdio posición
@@ -695,12 +695,12 @@
       <p class="section-kicker">Robustez</p>
       <h2>Análisis de sensibilidad y limites de interpretación</h2>
       <p>
-        Para evalúar si las conclusiones dependen de una decisión técnica particular,
+        Para evaluar si las conclusiones dependen de una decisión técnica particular,
         se comparan variantes de imputación, escalado, espacio de clustering y manejo
         de outliers. La partición principal es muy robusta a la imputación: con MICE
         el ARI frente a la base es 0,958 y la correlación de cargas de PC1 es 1,000;
         con casos completos el ARI es 1,000 y la correlación de cargas es 0,996. Esto
-        indica que los faltantes no estan dirigiendo la estructura. El clustering sobre
+        indica que los faltantes no están dirigiendo la estructura. El clustering sobre
         2 componentes mantiene un ARI de 0,938, y sobre 3 o 5 componentes coincide con
         la base. Al remover 10 outliers, el ARI sigue siendo 0,934.
       </p>
@@ -728,7 +728,7 @@
             </tr>
           </thead>
           <tbody>
-            <tr><td>Imputacion MICE</td><td>0,958</td><td>1,000</td><td>191</td></tr>
+            <tr><td>Imputación MICE</td><td>0,958</td><td>1,000</td><td>191</td></tr>
             <tr><td>Casos completos</td><td>1,000</td><td>0,996</td><td>135</td></tr>
             <tr><td>RobustScaler, todos los países</td><td>-0,004</td><td>0,009</td><td>191</td></tr>
             <tr><td>RobustScaler sin Macao</td><td>0,743</td><td>0,925</td><td>190</td></tr>
@@ -743,7 +743,7 @@
       <p>
         Las limitaciones principales son sustantivas y metodológicas. El análisis es
         transversal y descriptivo, por lo que no identifica relaciones causales. El
-        clustering resume una macro-separacion útil, pero el desarrollo se comporta
+        clustering resume una macro-separación útil, pero el desarrollo se comporta
         como un continuo; por eso los grupos deben interpretarse como perfiles
         agregados y no como categorias naturales rígidas. La comparación temporal se
         basa en posición relativa para evitar confundir progreso secular global con
@@ -767,9 +767,9 @@
         el perfil de desarrollo de un país.
       </p>
       <p>
-        El clustering identifica una macro-separacion robusta entre países desarrollados
+        El clustering identifica una macro-separación robusta entre países desarrollados
         y países en vias de desarrollo. La partición de dos grupos esta respaldada por
-        metricas internas, estabilidad bootstrap y una fuerte asociacion con el nivel
+        métricas internas, estabilidad bootstrap y una fuerte asociación con el nivel
         de ingreso oficial del Banco Mundial. A la vez, la evidencia obliga a una
         interpretación cuidadosa: la silueta es moderada y HDBSCAN encuentra un gran
         conjunto de puntos intermedios, por lo que el fenomeno se entiende mejor como
@@ -792,7 +792,7 @@
         horizonte temporal y cobertura; transformar y estandarizar impide que escalas
         y colas pesadas dominen; retener componentes con Horn evita quedarse con ruido;
         clusterizar sobre variables completas y comparar contra PCA evita asumir sin
-        prueba que la reducción no afecta los grupos. La conclusion final es que el
+        prueba que la reducción no afecta los grupos. La conclusión final es que el
         enfoque multivariado no solo confirma intuiciones generales sobre desarrollo,
         sino que permite ver matices que una sola variable no alcanza a mostrar.
       </p>
@@ -835,7 +835,7 @@
           con atributos <code>data-chart-id</code> y <code>data-static-src</code>. Esto permite
           reemplazar más adelante una imagen estática por un gráfico interactivo sin
           reescribir el texto del informe: basta con montar el gráfico en el mismo
-          contenedor o registrar una funcion asociada al identificador correspondiente
+          contenedor o registrar una función asociada al identificador correspondiente
           en <code>assets/report.js</code>.
         </p>
       </details>

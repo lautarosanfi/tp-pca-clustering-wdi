@@ -2,8 +2,8 @@
 Limpieza: del panel largo crudo a matrices ancho (país x variable) por año.
 
 Produce:
-  - wide_2021.csv, wide_2005.csv  -> matrices crudas (con NaN) ya filtradas
-  - countries_2021.csv, countries_2005.csv -> metadata (región, ingreso) alineada
+  - wide_2023.csv, wide_2005.csv  -> matrices crudas (con NaN) ya filtradas
+  - countries_2023.csv, countries_2005.csv -> metadata (región, ingreso) alineada
   - reporte_faltantes.csv -> faltantes por variable y año
   - panel_comun.csv -> países presentes en AMBOS años (para trayectorias)
 

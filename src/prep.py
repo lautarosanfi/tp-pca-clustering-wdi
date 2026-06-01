@@ -6,7 +6,7 @@ Reglas metodológicas implementadas:
   - Transformaciones decididas variable por variable a partir de la asimetría
     observada en EDA (ver skewness.csv y decisiones_metodologicas.md).
   - Estandarización: se AJUSTA UNA sola vez (sobre los datos de ajuste) y se
-    aplica idéntica. Para el análisis transversal 2021 el ajuste es sobre 2021;
+    aplica idéntica. Para el análisis transversal 2023 el ajuste es sobre 2023;
     para la comparación temporal el ajuste es sobre los DOS años apilados, de
     modo que ambos vivan en el mismo espacio estandarizado.
   - Imputación: KNN DENTRO DE CADA AÑO por separado (no cruza años), sobre datos
@@ -166,15 +166,15 @@ def prepare_combined(scaler="standard"):
 
 
 if __name__ == "__main__":
-    # Reporte de asimetría antes/después (sobre 2021)
+    # Reporte de asimetría antes/después (sobre el año moderno)
     num, _ = load_wide(config.YEAR_MODERN)
     pre = Preprocessor().fit(num)
     rep = pre.skew_report(num)
     pd.set_option("display.width", 200)
-    print("== Asimetría antes/después de transformar (2021) ==")
+    print(f"== Asimetría antes/después de transformar ({config.YEAR_MODERN}) ==")
     print(rep.to_string(index=False))
     rep.to_csv(config.DATA_PROC / "skewness_antes_despues.csv", index=False, encoding="utf-8")
-    # chequeo: estandarización deja media~0, sd~1 en 2021
+    # chequeo: estandarización deja media~0, sd~1 en el año moderno
     std = pre.transform(num)
     print("\nMedia tras estandarizar (debe ~0):", np.round(std.mean().abs().max(), 4))
     print("SD tras estandarizar (debe ~1):", np.round(std.std(ddof=0).mean(), 4))

@@ -3,8 +3,8 @@
 > Documento de respaldo del TP Final de *Análisis Multivariado y Descubrimiento de
 > Patrones*. Para **cada** decisión se indica: qué se decidió, su justificación
 > estadística, la alternativa considerada y qué mostró la sensibilidad.
-> Las cifras provienen de correr el pipeline (`src/run_all.py`); ver
-> `reports/run_all_log.txt` y `data/processed/`.
+> Las cifras provienen de correr el pipeline (`src/run_all.py`); ver las salidas
+> reproducibles en `data/processed/` y las figuras en `reports/figures/`.
 
 ## Regla de oro aplicada
 
@@ -87,9 +87,9 @@ abajo y se reflejan en el código.
   (apto para imputar). KNN sobre datos estandarizados usa distancias comparables.
   Imputar por año evita "usar el futuro para el pasado". KNNImputer es determinista.
 - **Resultado:** 192 países (2005), 191 (2023), panel común de **183**.
-- **Sensibilidad:** la partición es casi idéntica con **MICE** (ARI 0,979; correlación
-  de cargas de PC1 = 1,000) y con **casos completos** sin imputar (ARI 0,972; corr
-  0,997). ⇒ la imputación **no** dirige los resultados.
+- **Sensibilidad:** la partición es casi idéntica con **MICE** (ARI 0,958; correlación
+  de cargas de PC1 = 1,000) y con **casos completos** sin imputar (ARI 1,000; corr
+  0,996). ⇒ la imputación **no** dirige los resultados.
 
 ## 5. Transformaciones (variable por variable)
 

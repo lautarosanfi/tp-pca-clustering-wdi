@@ -1,5 +1,5 @@
 """
-Comparación rigurosa 2005 vs 2021.
+Comparación rigurosa 2005 vs 2023.
 
 Para que los dos años sean COMPARABLES, deben vivir en el MISMO espacio:
   - Transformaciones decididas sobre la distribución COMBINADA (ambos años).
@@ -11,8 +11,8 @@ ERROR que se evita: ajustar un PCA por año y comparar coordenadas (ejes, signos
 y escalas distintos -> no comparables).
 
 Análisis:
-  - Trayectorias país (2005 -> 2021) en el espacio PCA común.
-  - Transiciones de cluster (matriz 2005 x 2021) sobre el panel común.
+  - Trayectorias país (2005 -> 2023) en el espacio PCA común.
+  - Transiciones de cluster (matriz 2005 x 2023) sobre el panel común.
   - Estabilidad de la ESTRUCTURA: ¿el gradiente de desarrollo (PC1) se mantiene?
     (se comparan loadings de PCA ajustados por separado en cada año, alineando
     signos; comparar loadings ES válido, comparar scores NO).

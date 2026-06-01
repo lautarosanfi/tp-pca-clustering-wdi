@@ -1,4 +1,4 @@
-# Versiones usadas para generar los resultados (Python 3.14).
+# Versiones usadas para generar los resultados.
 pandas==3.0.1
 numpy==2.4.3
 scikit-learn==1.8.0
@@ -6,4 +6,3 @@ scipy==1.17.1
 matplotlib==3.10.8
 seaborn==0.13.2
 requests==2.34.0
-jupyter>=1.0

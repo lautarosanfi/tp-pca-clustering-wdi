@@ -5,11 +5,12 @@ __pycache__/
 .venv/
 venv/
 
-# Jupyter
-.ipynb_checkpoints/
-
 # Logs temporales
 reports/run_all_log.txt
+*.log
+
+# Servidores locales temporales
+*.pid
 
 # SO
 .DS_Store
