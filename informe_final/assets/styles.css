@@ -418,3 +418,45 @@ tbody tr:nth-child(even) td {
     padding: 24px 0;
   }
 }
+
+/* ── Citas tipo wiki ─────────────────────────────────────────────────────── */
+.refmark {
+  font-size: 0.72em;
+  line-height: 0;
+  vertical-align: super;
+  white-space: nowrap;
+}
+
+.refmark a {
+  color: var(--teal);
+  text-decoration: none;
+  font-weight: 600;
+  padding: 0 1px;
+}
+
+.refmark a:hover {
+  text-decoration: underline;
+}
+
+.references {
+  margin: 0;
+  padding-left: 1.4em;
+  counter-reset: none;
+}
+
+.references li {
+  margin-bottom: 10px;
+  line-height: 1.5;
+  scroll-margin-top: 90px;
+}
+
+.references li:target {
+  background: rgba(0, 109, 119, 0.10);
+  border-radius: 4px;
+  box-shadow: 0 0 0 6px rgba(0, 109, 119, 0.10);
+}
+
+.references a {
+  color: var(--teal);
+  word-break: break-word;
+}
