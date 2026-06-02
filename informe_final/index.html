@@ -669,6 +669,7 @@
           <strong>Figura 15.</strong> Descomposición del corrimiento absoluto de PC1. El
           avance común esta dominado por difusion de Internet y mejoras sanitarias, por
           lo que no debe confundirse con desarrollo relativo.
+          <a href="#apx-descomposicion">Ver construcción matemática en el apéndice</a>.
         </figcaption>
       </figure>
 
@@ -1029,6 +1030,103 @@
           En este trabajo los dos clusters de la solución k = 2 alcanzaron un Jaccard medio
           de 0,96 y 0,94, lo que respalda que la partición principal es robusta y no un
           producto del azar muestral.
+        </p>
+      </details>
+
+      <details id="apx-descomposicion">
+        <summary>Construcción matemática de la descomposición del corrimiento de PC1 (Figura 15)</summary>
+        <p>
+          La Figura 15 muestra, para cada variable, qué fracción del avance promedio de PC1
+          entre 2005 y 2023 explica esa variable. Los valores no son arbitrarios: se derivan
+          de que PC1 es una combinación lineal exacta de las variables. A continuación se
+          detalla cómo se construye cada columna de la tabla <code>descomposicion_dPC1.csv</code>
+          y, por lo tanto, cada barra del gráfico.
+        </p>
+
+        <h4>1. Un único espacio común para los dos años</h4>
+        <p>
+          Para que 2005 y 2023 sean comparables, ambos cortes se proyectan en el mismo espacio:
+          se apilan los dos años en una sola matriz, se estandarizan con un único escalador
+          (una sola media y un solo desvío por variable, calculados sobre los datos combinados)
+          y se ajusta un único PCA sobre esa matriz. Así, el score de PC1 de cualquier país en
+          cualquiera de los dos años vive en la misma escala y es directamente comparable.
+        </p>
+
+        <h4>2. PC1 como combinación lineal de las variables</h4>
+        <p>
+          El score de PC1 de un país <em>i</em> es una suma ponderada de sus variables
+          estandarizadas:
+        </p>
+        <span class="formula">
+          PC1<sub>i</sub> = Σ<sub>v</sub> w<sub>v</sub> · z<sub>v,i</sub>
+          <br><span class="note">z<sub>v,i</sub> = valor estandarizado de la variable v en el país i;
+          w<sub>v</sub> = peso de v en el primer autovector del PCA común.</span>
+        </span>
+        <p>
+          El peso w<sub>v</sub> es la componente <em>v</em>-ésima del primer autovector
+          (<code>components_[0]</code>), con el signo fijado para que el PBI per cápita cargue
+          positivo (así PC1 crece con el desarrollo). Esta es la columna
+          <code>peso_PC1(w)</code> de la tabla.
+        </p>
+
+        <h4>3. El corrimiento promedio se reparte por variable</h4>
+        <p>
+          Como PC1 es lineal, el cambio del score <strong>promedio</strong> entre los dos años
+          se descompone de forma exacta en una suma de aportes por variable. Si ⟨·⟩ denota
+          el promedio sobre los N países del panel común:
+        </p>
+        <span class="formula">
+          ⟨ΔPC1⟩ = (1/N) Σ<sub>i</sub> (PC1<sub>i,2023</sub> − PC1<sub>i,2005</sub>)
+          = Σ<sub>v</sub> w<sub>v</sub> · ⟨Δz<sub>v</sub>⟩
+        </span>
+        <p>
+          donde el cambio medio de cada variable estandarizada es
+        </p>
+        <span class="formula">
+          ⟨Δz<sub>v</sub>⟩ = (1/N) Σ<sub>i</sub> (z<sub>v,i,2023</sub> − z<sub>v,i,2005</sub>)
+          <br><span class="note">columna <code>mean_dz</code>. Como z está en unidades de
+          desvío estándar, ⟨Δz⟩ = 1,471 para Internet significa que su uso creció, en promedio,
+          casi un desvío y medio entre 2005 y 2023.</span>
+        </span>
+
+        <h4>4. Contribución de cada variable</h4>
+        <p>
+          El aporte de la variable <em>v</em> al corrimiento total es simplemente el producto
+          de su peso por su cambio medio:
+        </p>
+        <span class="formula">
+          contrib<sub>v</sub> = w<sub>v</sub> · ⟨Δz<sub>v</sub>⟩
+          <br><span class="note">columna <code>contrib_a_dPC1</code>.</span>
+        </span>
+        <p>
+          La clave interpretativa está aquí: una variable solo aporta mucho si <strong>pesa</strong>
+          en PC1 <em>y además</em> <strong>se movió</strong>. Internet domina (w = 0,309;
+          ⟨Δz⟩ = 1,471 ⟹ contrib = 0,454) no por tener el mayor peso, sino por su enorme cambio.
+          El PBI per cápita, en cambio, pesa más (w = 0,408) pero apenas se movió
+          (⟨Δz⟩ = 0,220), de modo que aporta poco (contrib = 0,090).
+        </p>
+
+        <h4>5. Lo que grafican las barras</h4>
+        <p>
+          Cada barra de la Figura 15 es el porcentaje que esa variable representa sobre el
+          corrimiento total:
+        </p>
+        <span class="formula">
+          pct<sub>v</sub> = 100 · contrib<sub>v</sub> / Σ<sub>u</sub> contrib<sub>u</sub>
+          <br><span class="note">columna <code>pct_del_total</code>. El denominador es el
+          corrimiento secular total Σ<sub>u</sub> contrib<sub>u</sub> = ⟨ΔPC1⟩ ≈ 0,958.</span>
+        </span>
+        <p>
+          Por ejemplo, para Internet: 100 × 0,454 / 0,958 ≈ 47,4 %. Por construcción, los
+          porcentajes suman 100 %. Un valor negativo (como inflación, −4,1 %) indica que esa
+          variable empujó el score promedio en <em>sentido contrario</em> al avance general.
+        </p>
+        <p>
+          Esto explica por qué el gráfico se titula corrimiento <strong>absoluto</strong>:
+          descompone el desplazamiento secular (todos los países subiendo juntos en el espacio
+          común, un fenómeno global dominado por la difusión de Internet y las mejoras de salud)
+          y no debe confundirse con cambios en la posición <em>relativa</em> de desarrollo, que
+          se analizan por separado en las Figuras 16 y 17.
         </p>
       </details>
 
