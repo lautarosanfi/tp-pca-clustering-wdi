@@ -461,6 +461,30 @@
           categoria no haya sido usada como variable activa.
         </figcaption>
       </figure>
+
+      <p>
+        La distribución geográfica del PC1 confirma el gradiente norte-sur de desarrollo.
+        Europa Occidental, América del Norte, Australia y Japón concentran los scores más
+        altos. África subsahariana y partes del sur de Asia presentan los scores más bajos.
+        América Latina ocupa una posición intermedia, con heterogeneidad interna notable.
+        Pasá el cursor sobre cada país para ver el score exacto.
+      </p>
+
+      <figure class="figure-card" data-chart-id="pca-mapa-pc1" data-static-src="figures/map_pc1_2023.png">
+        <iframe
+          src="figures/map_pc1_2023.html"
+          width="100%"
+          height="540"
+          style="border:none; display:block; border-radius:6px;"
+          loading="lazy"
+          title="Mapa interactivo: score PC1 por país, 2023"
+        ></iframe>
+        <figcaption>
+          <strong>Figura 9.</strong> Distribución geográfica del score en PC1 (2023).
+          Cada país está coloreado según su posición en el primer componente principal.
+          Hover para ver el nombre del país y el score exacto.
+        </figcaption>
+      </figure>
     </section>
 
     <section class="section" id="clustering">
@@ -506,14 +530,14 @@
         <figure class="figure-card" data-chart-id="cluster-metricas" data-static-src="figures/clust_metricas_k_2023.png">
           <img src="figures/clust_metricas_k_2023.png" alt="Métricas internas para selección de k" loading="lazy">
           <figcaption>
-            <strong>Figura 9.</strong> Criterios internos para elegir k. La evidencia
+            <strong>Figura 10.</strong> Criterios internos para elegir k. La evidencia
             converge en dos conglomerados como partición principal.
           </figcaption>
         </figure>
         <figure class="figure-card" data-chart-id="cluster-dendrograma" data-static-src="figures/clust_dendrograma_2023.png">
           <img src="figures/clust_dendrograma_2023.png" alt="Dendrograma de Ward para países 2023" loading="lazy">
           <figcaption>
-            <strong>Figura 10.</strong> Dendrograma de Ward. La estructura jerarquica
+            <strong>Figura 11.</strong> Dendrograma de Ward. La estructura jerarquica
             acompaña la idea de una separacion gruesa, no de una taxonomia fina.
           </figcaption>
         </figure>
@@ -534,7 +558,7 @@
       <figure class="figure-card" data-chart-id="cluster-silueta-k2" data-static-src="figures/clust_silhouette_k2_2023.png">
         <img src="figures/clust_silhouette_k2_2023.png" alt="Diagrama de silhouette para k igual a 2" loading="lazy">
         <figcaption>
-          <strong>Figura 11.</strong> Diagrama de silhouette para k = 2. La separacion es
+          <strong>Figura 12.</strong> Diagrama de silhouette para k = 2. La separacion es
           interpretable y estable, pero no perfecta; esto respalda una lectura prudente
           de los conglomerados.
         </figcaption>
@@ -592,7 +616,7 @@
         <figure class="figure-card" data-chart-id="cluster-pca-k2" data-static-src="figures/clust_pca_k2_2023.png">
           <img src="figures/clust_pca_k2_2023.png" alt="Conglomerados k igual a 2 proyectados sobre PC1 y PC2" loading="lazy">
           <figcaption>
-            <strong>Figura 12.</strong> Conglomerados principales proyectados sobre el
+            <strong>Figura 13.</strong> Conglomerados principales proyectados sobre el
             plano del PCA. La separacion ocurre sobre todo a lo largo del gradiente de
             desarrollo.
           </figcaption>
@@ -600,7 +624,7 @@
         <figure class="figure-card" data-chart-id="cluster-pca-k3" data-static-src="figures/clust_pca_k3_2023.png">
           <img src="figures/clust_pca_k3_2023.png" alt="Conglomerados k igual a 3 proyectados sobre PC1 y PC2" loading="lazy">
           <figcaption>
-            <strong>Figura 13.</strong> Vista complementaria con k = 3. Divide el continuo
+            <strong>Figura 14.</strong> Vista complementaria con k = 3. Divide el continuo
             en bajo desarrollo, emergente y desarrollado, pero se reporta como lectura
             secundaria.
           </figcaption>
@@ -636,7 +660,7 @@
       <figure class="figure-card" data-chart-id="temporal-descomposición" data-static-src="figures/compare_descomposicion_dPC1.png">
         <img src="figures/compare_descomposicion_dPC1.png" alt="Descomposición del avance absoluto del PC1 entre 2005 y 2023" loading="lazy">
         <figcaption>
-          <strong>Figura 14.</strong> Descomposición del corrimiento absoluto de PC1. El
+          <strong>Figura 15.</strong> Descomposición del corrimiento absoluto de PC1. El
           avance común esta dominado por difusion de Internet y mejoras sanitarias, por
           lo que no debe confundirse con desarrollo relativo.
         </figcaption>
@@ -667,7 +691,7 @@
         <figure class="figure-card" data-chart-id="temporal-trayectorias" data-static-src="figures/compare_trayectorias.png">
           <img src="figures/compare_trayectorias.png" alt="Movilidad relativa de países entre 2005 y 2023" loading="lazy">
           <figcaption>
-            <strong>Figura 15.</strong> Movilidad relativa. Los puntos sobre la diagonal
+            <strong>Figura 16.</strong> Movilidad relativa. Los puntos sobre la diagonal
             mantienen posición relativa; por encima ascienden frente a sus pares; por
             debajo pierden posición.
           </figcaption>
@@ -675,7 +699,7 @@
         <figure class="figure-card" data-chart-id="temporal-transiciones" data-static-src="figures/compare_transiciones.png">
           <img src="figures/compare_transiciones.png" alt="Transiciones de tier relativo entre 2005 y 2023" loading="lazy">
           <figcaption>
-            <strong>Figura 16.</strong> Transiciones de tier relativo. Predomina la
+            <strong>Figura 17.</strong> Transiciones de tier relativo. Predomina la
             permanencia, con 15 ascensos y 1 descenso entre los países del panel común.
           </figcaption>
         </figure>
@@ -684,7 +708,7 @@
       <figure class="figure-card" data-chart-id="temporal-loadings" data-static-src="figures/compare_loadings_pc1.png">
         <img src="figures/compare_loadings_pc1.png" alt="Comparación de cargas del PC1 entre 2005 y 2023" loading="lazy">
         <figcaption>
-          <strong>Figura 17.</strong> Estabilidad de las cargas del PC1 entre 2005 y 2023.
+          <strong>Figura 18.</strong> Estabilidad de las cargas del PC1 entre 2005 y 2023.
           Los puntos cercanos a la diagonal muestran que el eje de desarrollo conserva
           su significado.
         </figcaption>
