@@ -630,6 +630,53 @@
           </figcaption>
         </figure>
       </div>
+
+      <p>
+        El dendrograma de Ward apunta a k = 3 como corte natural, pero conviene
+        comparar el método jerárquico con k-means en las dos particiones de interes.
+        Por eso repetimos exactamente las dos vistas anteriores —k = 2 y k = 3— pero
+        usando el algoritmo de Ward en lugar de k-means. Todo lo demás se mantiene
+        igual: las 14 variables completas, la misma proyeccion sobre PC1 y PC2, y el
+        mismo criterio de ordenamiento de los grupos por su PC1 medio (de bajo a alto
+        desarrollo), de modo que los colores son comparables figura a figura.
+      </p>
+
+      <div class="figure-grid">
+        <figure class="figure-card" data-chart-id="cluster-pca-k2-ward" data-static-src="figures/clust_pca_k2_ward_2023.png">
+          <img src="figures/clust_pca_k2_ward_2023.png" alt="Conglomerados k igual a 2 con Ward proyectados sobre PC1 y PC2" loading="lazy">
+          <figcaption>
+            <strong>Figura 15.</strong> Visualizacion extra: misma proyeccion y misma
+            k = 2 que la Figura 13, pero con clustering jerárquico de Ward en lugar de
+            k-means.
+          </figcaption>
+        </figure>
+        <figure class="figure-card" data-chart-id="cluster-pca-k3-ward" data-static-src="figures/clust_pca_k3_ward_2023.png">
+          <img src="figures/clust_pca_k3_ward_2023.png" alt="Conglomerados k igual a 3 con Ward proyectados sobre PC1 y PC2" loading="lazy">
+          <figcaption>
+            <strong>Figura 16.</strong> Visualizacion extra: misma proyeccion y misma
+            k = 3 que la Figura 14, pero con clustering jerárquico de Ward (el método
+            del dendrograma) en lugar de k-means.
+          </figcaption>
+        </figure>
+      </div>
+
+      <p>
+        <strong>Qué cambia.</strong> El contraste entre las dos k es informativo. En
+        <strong>k = 3</strong> las particiones de Ward y k-means coinciden casi por
+        completo (índice de Rand ajustado de 0,75): solo 16 de 191 países cambian de
+        grupo, con tamaños casi idénticos (Ward 52 / 76 / 63 contra k-means 51 / 80 / 60)
+        y reacomodos limitados a la frontera difusa del grupo <em>emergente</em>. En
+        <strong>k = 2</strong>, en cambio, los métodos difieren algo más (Rand ajustado
+        de 0,62; 20 países reasignados): Ward no parte el continuo por la mitad sino que
+        aísla primero un núcleo compacto de bajo desarrollo (52 países) y agrupa al resto
+        como desarrollado (139), mientras que k-means produce un corte más equilibrado
+        (70 contra 121). Esa diferencia es esperable —Ward minimiza el aumento de
+        varianza intra-grupo al fusionar y tiende a desprender primero el grupo más
+        homogéneo, en vez de optimizar centroides—. Lo relevante es que ningún método
+        inventa estructura: ambos ordenan a los países a lo largo del mismo gradiente de
+        PC1, y la segmentación en tres grupos resulta especialmente robusta al cambio de
+        algoritmo.
+      </p>
     </section>
 
     <section class="section" id="temporal">
@@ -660,7 +707,7 @@
       <figure class="figure-card" data-chart-id="temporal-descomposición" data-static-src="figures/compare_descomposicion_dPC1.png">
         <img src="figures/compare_descomposicion_dPC1.png" alt="Descomposición del avance absoluto del PC1 entre 2005 y 2023" loading="lazy">
         <figcaption>
-          <strong>Figura 15.</strong> Descomposición del corrimiento absoluto de PC1. El
+          <strong>Figura 17.</strong> Descomposición del corrimiento absoluto de PC1. El
           avance común esta dominado por difusion de Internet y mejoras sanitarias, por
           lo que no debe confundirse con desarrollo relativo.
         </figcaption>
@@ -691,7 +738,7 @@
         <figure class="figure-card" data-chart-id="temporal-trayectorias" data-static-src="figures/compare_trayectorias.png">
           <img src="figures/compare_trayectorias.png" alt="Movilidad relativa de países entre 2005 y 2023" loading="lazy">
           <figcaption>
-            <strong>Figura 16.</strong> Movilidad relativa. Los puntos sobre la diagonal
+            <strong>Figura 18.</strong> Movilidad relativa. Los puntos sobre la diagonal
             mantienen posición relativa; por encima ascienden frente a sus pares; por
             debajo pierden posición.
           </figcaption>
@@ -699,7 +746,7 @@
         <figure class="figure-card" data-chart-id="temporal-transiciones" data-static-src="figures/compare_transiciones.png">
           <img src="figures/compare_transiciones.png" alt="Transiciones de tier relativo entre 2005 y 2023" loading="lazy">
           <figcaption>
-            <strong>Figura 17.</strong> Transiciones de tier relativo. Predomina la
+            <strong>Figura 19.</strong> Transiciones de tier relativo. Predomina la
             permanencia, con 15 ascensos y 1 descenso entre los países del panel común.
           </figcaption>
         </figure>
@@ -708,7 +755,7 @@
       <figure class="figure-card" data-chart-id="temporal-loadings" data-static-src="figures/compare_loadings_pc1.png">
         <img src="figures/compare_loadings_pc1.png" alt="Comparación de cargas del PC1 entre 2005 y 2023" loading="lazy">
         <figcaption>
-          <strong>Figura 18.</strong> Estabilidad de las cargas del PC1 entre 2005 y 2023.
+          <strong>Figura 20.</strong> Estabilidad de las cargas del PC1 entre 2005 y 2023.
           Los puntos cercanos a la diagonal muestran que el eje de desarrollo conserva
           su significado.
         </figcaption>
@@ -719,30 +766,55 @@
       <p class="section-kicker">Robustez</p>
       <h2>Análisis de sensibilidad y limites de interpretación</h2>
       <p>
-        Para evaluar si las conclusiones dependen de una decisión técnica particular,
-        se comparan variantes de imputación, escalado, espacio de clustering y manejo
-        de outliers. La partición principal es muy robusta a la imputación: con MICE
-        el ARI frente a la base es 0,958 y la correlación de cargas de PC1 es 1,000;
-        con casos completos el ARI es 1,000 y la correlación de cargas es 0,996. Esto
-        indica que los faltantes no están dirigiendo la estructura. El clustering sobre
-        2 componentes mantiene un ARI de 0,938, y sobre 3 o 5 componentes coincide con
-        la base. Al remover 10 outliers, el ARI sigue siendo 0,934.
+        Una conclusión es confiable si no depende de una sola decisión técnica. Para
+        comprobarlo, se fija una <strong>configuración base</strong> —estandarización
+        clásica (restar la media y dividir por el desvio), imputación de faltantes por
+        vecinos más cercanos (KNN), las 14 variables completas y k-means con k = 2— y se
+        la compara contra variantes razonables: otra forma de imputar, otro escalado,
+        clusterizar sobre componentes en lugar de variables, y quitar países atípicos.
       </p>
       <p>
-        La excepcion instructiva es el escalado robusto aplicado a todos los países:
-        rompe la partición (ARI = -0,004) y cambia completamente las cargas de PC1.
-        La razón no es que el escalado robusto sea incorrecto en general, sino que en
-        este conjunto una observación extrema de crecimiento del PBI en Macao queda
-        amplificada al dividir por un rango intercuartil pequeño. Al quitar solo ese
-        caso, el resultado se recompone parcialmente (ARI = 0,743; correlación de PC1
-        = 0,925). Esta prueba respalda la elección de estandarización clásica en la
-        línea base, porque el desvio estandar absorbe parte de esa cola extrema y evita
-        que un rebote macroeconomico secuestre el primer componente.
+        Cada variante se resume con dos números simples. El primero, el
+        <strong>índice de Rand ajustado (ARI)</strong>, responde a la pregunta
+        &laquo;¿quedan los mismos países agrupados juntos?&raquo;: vale 1 cuando la
+        partición es idéntica a la base, alrededor de 0 cuando el parecido es el que se
+        esperaria por azar, y puede ser negativo si es aún peor. El segundo, la
+        <strong>correlación de las cargas de PC1</strong>, responde a &laquo;¿el eje de
+        desarrollo significa lo mismo?&raquo;: compara el peso que cada variable tiene
+        sobre PC1 en la variante contra el de la base, de modo que un valor cercano a 1
+        indica que el componente conserva su composición e interpretación. En resumen:
+        el primer número mira si los grupos se mantienen, el segundo si el eje principal
+        se mantiene.
+      </p>
+      <p>
+        Leida con esa clave, la tabla muestra que casi todo es estable. La forma de
+        imputar es indiferente: tanto MICE (un método iterativo alternativo) como
+        descartar los faltantes y quedarse solo con casos completos reproducen
+        prácticamente la misma partición y el mismo PC1 que KNN, señal de que los datos
+        faltantes no están dirigiendo el resultado. Tampoco importa si se clusteriza
+        sobre las variables o sobre 2, 3 o 5 componentes del PCA, ni si se quitan los
+        10 países más extremos: en todos los casos el ARI se mantiene alto y las cargas
+        de PC1 casi no cambian.
+      </p>
+      <p>
+        La única excepción es instructiva: reemplazar la estandarización clásica por un
+        <strong>escalado robusto</strong> (que divide por el rango intercuartil en vez
+        de por el desvio) sobre todos los países rompe la partición (ARI = -0,004) y
+        cambia por completo el significado de PC1. El motivo es puntual y no general: el
+        crecimiento del PBI de Macao en 2023 es un valor extremo, y al dividir por un
+        rango intercuartil pequeño ese dato se amplifica tanto que el PCA —que persigue
+        la mayor varianza— lo toma como eje principal. Al quitar solo ese país, el
+        resultado se recompone en gran medida (ARI = 0,743). Esta prueba justifica la
+        estandarización clásica de la base: el desvio estándar absorbe mejor esa cola
+        extrema y evita que un rebote puntual secuestre el primer componente.
       </p>
 
       <div class="table-wrap">
         <table>
-          <caption>Sensibilidad de resultados frente a variantes metodológicas</caption>
+          <caption>
+            Sensibilidad de resultados frente a variantes metodológicas. ARI vs. base:
+            1 = misma agrupación; correlación de cargas: 1 = mismo significado de PC1.
+          </caption>
           <thead>
             <tr>
               <th>Variante</th>

@@ -356,15 +356,29 @@ def run(year=config.YEAR_MODERN):
     order = np.argsort([pc1[final_lab == c].mean() for c in range(K_PRIMARY)])
     remap = {old: new for new, old in enumerate(order)}
     final_lab = np.array([remap[c] for c in final_lab])
+    # Vista complementaria k=2 con Ward (mismo remapeo por PC1 que k-means).
+    ward2 = labels_store[(2, "ward_full")]
+    order_w2 = np.argsort([pc1[ward2 == c].mean() for c in range(2)])
+    remap_w2 = {old: new for new, old in enumerate(order_w2)}
+    ward2 = np.array([remap_w2[c] for c in ward2])
     lab3 = labels_store[(3, "kmeans_full")]
     order3 = np.argsort([pc1[lab3 == c].mean() for c in range(3)])
     remap3 = {old: new for new, old in enumerate(order3)}
     lab3 = np.array([remap3[c] for c in lab3])
+    # Vista complementaria: misma k=3 pero con jerárquico de Ward (el que sugiere
+    # el dendrograma). Se remapea por PC1 medio igual que k-means para que los
+    # colores/etiquetas sean comparables figura a figura.
+    ward3 = labels_store[(3, "ward_full")]
+    order_w3 = np.argsort([pc1[ward3 == c].mean() for c in range(3)])
+    remap_w3 = {old: new for new, old in enumerate(order_w3)}
+    ward3 = np.array([remap_w3[c] for c in ward3])
 
     # guardar etiquetas
     out = cats.copy()
     out["cluster_k2"] = final_lab
+    out["cluster_k2_ward"] = ward2
     out["cluster_k3"] = lab3
+    out["cluster_k3_ward"] = ward3
     out["PC1"] = scores_all[:, 0]
     out["PC2"] = scores_all[:, 1]
     out.to_csv(config.DATA_PROC / f"clusters_{year}.csv", encoding="utf-8")
@@ -396,6 +410,25 @@ def run(year=config.YEAR_MODERN):
     plot_clusters_on_pca(scores_all, lab3, evr, f"clust_pca_k3_{year}.png",
                          f"Conglomerados (k-means, 14 variables, k=3) sobre PC1-PC2 — {year}",
                          iso=iso)
+    # Vistas extra: mismo plano y misma k, pero con jerárquico de Ward (el método
+    # del dendrograma) en lugar de k-means.
+    plot_clusters_on_pca(scores_all, ward2, evr, f"clust_pca_k2_ward_{year}.png",
+                         f"Conglomerados (Ward, 14 variables, k=2) sobre PC1-PC2 — {year}",
+                         iso=iso)
+    plot_clusters_on_pca(scores_all, ward3, evr, f"clust_pca_k3_ward_{year}.png",
+                         f"Conglomerados (Ward, 14 variables, k=3) sobre PC1-PC2 — {year}",
+                         iso=iso)
+    ari_k2_ward = adjusted_rand_score(final_lab, ward2)
+    n_mismatch2 = int(np.sum(final_lab != ward2))
+    ari_k3_ward = adjusted_rand_score(lab3, ward3)
+    n_mismatch3 = int(np.sum(lab3 != ward3))
+    print(f"\n== Ward vs k-means (misma proyección) ==")
+    print(f"  k=2: ARI = {ari_k2_ward:.3f}  |  países reasignados = {n_mismatch2}/{len(ward2)}")
+    print(f"  k=3: ARI = {ari_k3_ward:.3f}  |  países reasignados = {n_mismatch3}/{len(ward3)}")
+    results["ward_vs_kmeans"] = {
+        "k2": {"ari": float(ari_k2_ward), "n_reasignados": n_mismatch2},
+        "k3": {"ari": float(ari_k3_ward), "n_reasignados": n_mismatch3},
+    }
 
     with open(config.DATA_PROC / f"clustering_resultados_{year}.json", "w", encoding="utf-8") as f:
         json.dump(results, f, ensure_ascii=False, indent=2, default=float)
