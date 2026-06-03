@@ -15,3 +15,6 @@ reports/run_all_log.txt
 # SO
 .DS_Store
 Thumbs.db
+
+.idea
+.claude
