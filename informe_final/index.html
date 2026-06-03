@@ -233,7 +233,8 @@
         varios órdenes de magnitud. Las emisiones de CO₂ se transforman con logaritmo
         de uno más la variable, ya que admiten valores cercanos a cero. Variables con
         fuerte asimetria y posibilidad de valores negativos, como la inflación, se
-        tratan con Yeo-Johnson. Otras variables acotadas o con asimetria baja, como
+        tratan con Yeo-Johnson<span class="refmark"><a href="#ref-1">[1]</a></span>.
+        Otras variables acotadas o con asimetria baja, como
         urbanización, esperanza de vida, servicios, formación de capital y crecimiento
         del PBI, se dejan sin transformar para no introducir una corrección innecesaria.
         La estandarización se aplica después de transformar: primero se corrige la
@@ -351,11 +352,12 @@
       <p>
         La cantidad de componentes no se decide por conveniencia gráfica. Se comparan
         tres criterios: Kaiser, que retiene autovalores mayores a 1; el umbral de 80%
-        de varianza acumulada; y el análisis paralelo de Horn, que contrasta los
-        autovalores observados contra los que aparecerian en matrices aleatorias con
-        la misma dimensión. Kaiser sugiere 4 componentes y el umbral de 80% llevaria
-        a 6; Horn retiene 3. Como Horn controla explicitamente contra estructura que
-        podria surgir por ruido, se adopta como criterio principal. Los 3 componentes
+        de varianza acumulada; y el análisis paralelo de Horn<span class="refmark"><a href="#ref-2">[2]</a></span>,
+        que contrasta los autovalores observados contra los que aparecerian en matrices
+        aleatorias con la misma dimensión. Kaiser sugiere
+        4 componentes y el umbral de 80% llevaria a 6; Horn retiene 3. Como Horn
+        controla explicitamente contra estructura que podria surgir por ruido, se
+        adopta como criterio principal. Los 3 componentes
         retenidos explican 64,9% de la varianza total, suficiente para interpretar las
         dimensiones dominantes sin forzar una reducción excesiva.
       </p>
@@ -507,9 +509,10 @@
         previa obligatoria. Por eso la partición principal se calcula sobre las 14
         variables transformadas y estandarizadas. Luego se compara contra la partición
         obtenida sobre los componentes retenidos. Para k = 2, ambas particiones son
-        idénticas según el índice de Rand ajustado (ARI = 1,000). La conclusión es
-        importante: en este caso el uso de PCA antes de clusterizar no hubiera sesgado
-        el resultado principal, pero esa equivalencia fue verificada y no asumida.
+        idénticas según el índice de Rand ajustado<span class="refmark"><a href="#ref-3">[3]</a></span>
+        (ARI = 1,000). La conclusión es importante: en este caso el uso de
+        PCA antes de clusterizar no hubiera sesgado el resultado principal, pero esa
+        equivalencia fue verificada y no asumida.
       </p>
 
       <h3>Algoritmos, número de grupos y estabilidad</h3>
@@ -520,8 +523,11 @@
         jerárquico porque minimiza la varianza intragrupo al fusionar clusters. El
         número de conglomerados se elige por consenso entre métricas internas,
         estadistico gap y estabilidad por remuestreo. La convergencia favorece k = 2:
-        silhouette, Calinski-Harabasz, Davies-Bouldin y gap apuntan a dos grupos. La
-        estabilidad bootstrap es muy alta para k = 2, con Jaccard medio de 0,96 y 0,94
+        silhouette<span class="refmark"><a href="#ref-4">[4]</a></span>,
+        Calinski-Harabasz<span class="refmark"><a href="#ref-5">[5]</a></span>,
+        Davies-Bouldin<span class="refmark"><a href="#ref-6">[6]</a></span> y
+        gap statistic<span class="refmark"><a href="#ref-7">[7]</a></span> apuntan a dos grupos. La
+        estabilidad bootstrap<span class="refmark"><a href="#ref-8">[8]</a></span> es muy alta para k = 2, con Jaccard medio de 0,96 y 0,94
         en los dos grupos. Para k = 3 la solucion sigue siendo informativa, pero menos
         estable; para k = 4 un grupo se disuelve.
       </p>
@@ -663,6 +669,7 @@
           <strong>Figura 15.</strong> Descomposición del corrimiento absoluto de PC1. El
           avance común esta dominado por difusion de Internet y mejoras sanitarias, por
           lo que no debe confundirse con desarrollo relativo.
+          <a href="#apx-descomposicion">Ver construcción matemática en el apéndice</a>.
         </figcaption>
       </figure>
 
@@ -865,14 +872,319 @@
       </details>
 
       <details>
-        <summary>Referencias metodológicas</summary>
-        <ul>
-          <li>Análisis de Componentes Principales: uso sobre matriz de correlaciones para variables estandarizadas.</li>
-          <li>Análisis paralelo de Horn: criterio de retención de componentes comparando autovalores observados contra datos aleatorios.</li>
-          <li>K-means y Ward: métodos de clustering con distancia euclídea en espacio estandarizado.</li>
-          <li>Gap statistic, silhouette, Calinski-Harabasz y Davies-Bouldin: criterios internos para selección de k.</li>
-          <li>Estabilidad bootstrap tipo Hennig: evalúacion de persistencia de clusters por remuestreo.</li>
-        </ul>
+        <summary>Técnicas no cubiertas en el programa de la materia</summary>
+        <p>
+          Las siguientes técnicas se utilizaron en el trabajo pero exceden el contenido
+          estándar de la materia. Se describen aquí con el nivel de detalle suficiente
+          para que el lector pueda evaluar su uso sin necesidad de bibliografía adicional.
+        </p>
+
+        <h4>Transformación de Yeo-Johnson</h4>
+        <p>
+          Muchos métodos estadísticos funcionan mejor cuando las variables tienen distribuciones
+          aproximadamente simétricas. El logaritmo es la transformación más conocida para
+          reducir asimetría, pero exige que todos los valores sean estrictamente positivos.
+          La transformación de Yeo-Johnson (Yeo y Johnson, 2000) resuelve esa limitación:
+          define una función de potencia parametrizada por λ que se aplica de forma distinta
+          según el signo del dato. Para valores positivos se comporta como una transformación
+          Box-Cox; para valores negativos aplica una versión especular que también reduce la
+          cola izquierda. El parámetro λ se estima por máxima verosimilitud sobre los datos
+          observados. En la práctica, si λ ≈ 0 el resultado se aproxima al logaritmo; si
+          λ ≈ 1 la variable queda casi sin cambio. En este trabajo se usó para la inflación,
+          que puede tomar valores negativos (deflación) y presenta colas pesadas asimétricas.
+        </p>
+
+        <h4>Análisis paralelo de Horn</h4>
+        <p>
+          El criterio de Kaiser (retener componentes con autovalor &gt; 1) y el umbral de
+          varianza acumulada son heurísticas simples que no tienen en cuenta el ruido
+          inherente a cualquier muestra finita. Incluso matrices de datos completamente
+          aleatorias producen autovalores mayores a 1 cuando hay muchas variables y pocos
+          casos, lo que lleva a Kaiser a retener componentes sin contenido real.
+        </p>
+        <p>
+          El análisis paralelo de Horn (Horn, 1965) propone un criterio de contraste:
+        </p>
+        <ol>
+          <li>Se calculan los autovalores del PCA sobre los datos reales.</li>
+          <li>Se generan un gran número de matrices aleatorias (en este trabajo, 1000)
+              con la misma cantidad de filas y columnas que los datos, pero con valores
+              muestreados de una normal estándar, es decir, sin ninguna estructura real.</li>
+          <li>Para cada posición de componente se obtiene el percentil 95 de los autovalores
+              aleatorios correspondientes.</li>
+          <li>Se retienen solo los componentes cuyo autovalor real supera ese percentil.
+              Si el autovalor observado apenas supera al aleatorio, no hay evidencia de que
+              ese componente capture algo más que ruido muestral.</li>
+        </ol>
+        <p>
+          Este procedimiento es más conservador que Kaiser y más fundamentado que el umbral
+          de varianza, por lo que se adoptó como criterio principal. El resultado en este
+          trabajo fue retener 3 componentes.
+        </p>
+
+        <h4>Índice de Rand ajustado (ARI)</h4>
+        <p>
+          Cuando se tienen dos particiones de los mismos objetos (por ejemplo, el clustering
+          sobre variables originales y el clustering sobre componentes principales) se necesita
+          una medida de concordancia que no dependa de cómo se etiquetan los grupos.
+        </p>
+        <p>
+          El índice de Rand considera todos los pares de observaciones posibles y clasifica
+          cada par en cuatro categorías: ambos en el mismo grupo en ambas particiones (a);
+          en el mismo grupo en la primera pero no en la segunda (b); en grupos distintos en
+          la primera pero en el mismo en la segunda (c); en grupos distintos en ambas (d).
+          El índice es (a + d) / (a + b + c + d). El problema es que su valor esperado bajo
+          asignación aleatoria no es cero, lo que dificulta la comparación.
+        </p>
+        <p>
+          El <strong>índice de Rand ajustado</strong> (Hubert y Arabie, 1985) corrige por
+          ese valor esperado aleatorio, de modo que un ARI = 0 indica acuerdo equivalente
+          al azar y ARI = 1 indica acuerdo perfecto. Valores negativos son posibles pero
+          raros. En este trabajo el ARI entre la partición sobre variables originales y la
+          partición sobre componentes principales fue de 1,000 para k = 2, lo que confirma
+          que ambos enfoques producen exactamente los mismos grupos.
+        </p>
+
+        <h4>Coeficiente de silueta (silhouette)</h4>
+        <p>
+          El coeficiente de silueta (Rousseeuw, 1987) mide, para cada observación, qué tan
+          bien encaja en su propio grupo comparado con el grupo vecino más cercano. Para una
+          observación se define como s = (b − a) / max(a, b), donde a es la distancia media
+          a los demás puntos de su mismo grupo (cohesión) y b es la distancia media al grupo
+          más próximo al que no pertenece (separación). El valor va de −1 a 1: cerca de 1 la
+          observación está bien asignada; cerca de 0 está en la frontera entre dos grupos;
+          negativo sugiere que estaría mejor en otro grupo. El silhouette promedio sobre todas
+          las observaciones resume la calidad global de la partición y permite comparar
+          distintos valores de k.
+        </p>
+
+        <h4>Calinski-Harabasz y Davies-Bouldin</h4>
+        <p>
+          Ambos son índices internos de calidad de clustering, es decir, se calculan solo
+          con los datos y las etiquetas de grupo, sin necesidad de una partición de referencia.
+        </p>
+        <p>
+          El <strong>índice de Calinski-Harabasz</strong> (1974) es la razón entre la
+          dispersión entre grupos (cuán separados están los centroides entre sí, ponderada
+          por el tamaño de cada grupo) y la dispersión dentro de los grupos (cuán compactos
+          son internamente). Un valor más alto indica grupos más separados y más compactos,
+          lo que es deseable. El índice favorece soluciones donde los grupos son
+          simultáneamente cohesivos y bien diferenciados.
+        </p>
+        <p>
+          El <strong>índice de Davies-Bouldin</strong> (1979) funciona de forma inversa:
+          para cada grupo calcula la razón entre su dispersión interna y su distancia al
+          grupo más parecido, y promedia esas razones sobre todos los grupos. Un valor más
+          bajo indica que los grupos son compactos y están bien separados entre sí.
+          A diferencia de Calinski-Harabasz, penaliza especialmente las situaciones en que
+          grupos vecinos son similares entre sí.
+        </p>
+        <p>
+          En la práctica se usan ambos como señales complementarias: si coinciden en señalar
+          el mismo k, la evidencia es más robusta.
+        </p>
+
+        <h4>Gap statistic</h4>
+        <p>
+          El estadístico gap (Tibshirani, Walther y Hastie, 2001) aborda directamente la
+          pregunta de si un clustering es mejor que no tener estructura alguna. La idea central
+          es comparar la compacidad del clustering observado con la compacidad esperada bajo
+          datos sin estructura.
+        </p>
+        <p>
+          El procedimiento es el siguiente:
+        </p>
+        <ol>
+          <li>Para cada k candidato, se calcula la suma de distancias intragrupo W(k)
+              sobre los datos reales.</li>
+          <li>Se generan B muestras de referencia uniformes en el rango de cada variable
+              (datos sin estructura) y se calcula W*(k) para cada una.</li>
+          <li>El gap es: Gap(k) = E[log W*(k)] − log W(k). Un gap grande indica que
+              los datos reales están mucho más agrupados que lo esperado por azar.</li>
+          <li>Se elige el menor k tal que Gap(k) ≥ Gap(k+1) − s(k+1), donde s(k+1)
+              es el error estándar de la estimación del siguiente gap.</li>
+        </ol>
+        <p>
+          Una ventaja clave es que puede sugerir k = 1 si los datos no tienen estructura
+          de grupos, algo que los índices puramente internos no pueden detectar. En este
+          trabajo el gap statistic también favoreció k = 2.
+        </p>
+
+        <h4>Estabilidad de clusters por bootstrap (Hennig)</h4>
+        <p>
+          Elegir un número de grupos no garantiza que esos grupos sean reales y reproducibles:
+          podrían ser un artefacto de la muestra concreta. El método de Hennig (2007) evalúa
+          la estabilidad de cada cluster mediante remuestreo bootstrap.
+        </p>
+        <ol>
+          <li>Se extraen muchas muestras bootstrap (remuestreos con reemplazo) del conjunto
+              de datos y se vuelve a aplicar el clustering en cada una.</li>
+          <li>Para cada cluster original se busca, en cada remuestreo, el cluster más parecido
+              y se mide el solapamiento con el índice de Jaccard (proporción de elementos
+              compartidos sobre elementos totales de la unión).</li>
+          <li>El Jaccard medio de cada cluster a lo largo de los remuestreos resume su
+              estabilidad: valores por encima de ~0,85 indican clusters muy estables;
+              por debajo de ~0,6 indican grupos poco fiables o disueltos.</li>
+        </ol>
+        <p>
+          En este trabajo los dos clusters de la solución k = 2 alcanzaron un Jaccard medio
+          de 0,96 y 0,94, lo que respalda que la partición principal es robusta y no un
+          producto del azar muestral.
+        </p>
+      </details>
+
+      <details id="apx-descomposicion">
+        <summary>Construcción matemática de la descomposición del corrimiento de PC1 (Figura 15)</summary>
+        <p>
+          La Figura 15 muestra, para cada variable, qué fracción del avance promedio de PC1
+          entre 2005 y 2023 explica esa variable. Los valores no son arbitrarios: se derivan
+          de que PC1 es una combinación lineal exacta de las variables. A continuación se
+          detalla cómo se construye cada columna de la tabla <code>descomposicion_dPC1.csv</code>
+          y, por lo tanto, cada barra del gráfico.
+        </p>
+
+        <h4>1. Un único espacio común para los dos años</h4>
+        <p>
+          Para que 2005 y 2023 sean comparables, ambos cortes se proyectan en el mismo espacio:
+          se apilan los dos años en una sola matriz, se estandarizan con un único escalador
+          (una sola media y un solo desvío por variable, calculados sobre los datos combinados)
+          y se ajusta un único PCA sobre esa matriz. Así, el score de PC1 de cualquier país en
+          cualquiera de los dos años vive en la misma escala y es directamente comparable.
+        </p>
+
+        <h4>2. PC1 como combinación lineal de las variables</h4>
+        <p>
+          El score de PC1 de un país <em>i</em> es una suma ponderada de sus variables
+          estandarizadas:
+        </p>
+        <span class="formula">
+          PC1<sub>i</sub> = Σ<sub>v</sub> w<sub>v</sub> · z<sub>v,i</sub>
+          <br><span class="note">z<sub>v,i</sub> = valor estandarizado de la variable v en el país i;
+          w<sub>v</sub> = peso de v en el primer autovector del PCA común.</span>
+        </span>
+        <p>
+          El peso w<sub>v</sub> es la componente <em>v</em>-ésima del primer autovector
+          (<code>components_[0]</code>), con el signo fijado para que el PBI per cápita cargue
+          positivo (así PC1 crece con el desarrollo). Esta es la columna
+          <code>peso_PC1(w)</code> de la tabla.
+        </p>
+
+        <h4>3. El corrimiento promedio se reparte por variable</h4>
+        <p>
+          Como PC1 es lineal, el cambio del score <strong>promedio</strong> entre los dos años
+          se descompone de forma exacta en una suma de aportes por variable. Si ⟨·⟩ denota
+          el promedio sobre los N países del panel común:
+        </p>
+        <span class="formula">
+          ⟨ΔPC1⟩ = (1/N) Σ<sub>i</sub> (PC1<sub>i,2023</sub> − PC1<sub>i,2005</sub>)
+          = Σ<sub>v</sub> w<sub>v</sub> · ⟨Δz<sub>v</sub>⟩
+        </span>
+        <p>
+          donde el cambio medio de cada variable estandarizada es
+        </p>
+        <span class="formula">
+          ⟨Δz<sub>v</sub>⟩ = (1/N) Σ<sub>i</sub> (z<sub>v,i,2023</sub> − z<sub>v,i,2005</sub>)
+          <br><span class="note">columna <code>mean_dz</code>. Como z está en unidades de
+          desvío estándar, ⟨Δz⟩ = 1,471 para Internet significa que su uso creció, en promedio,
+          casi un desvío y medio entre 2005 y 2023.</span>
+        </span>
+
+        <h4>4. Contribución de cada variable</h4>
+        <p>
+          El aporte de la variable <em>v</em> al corrimiento total es simplemente el producto
+          de su peso por su cambio medio:
+        </p>
+        <span class="formula">
+          contrib<sub>v</sub> = w<sub>v</sub> · ⟨Δz<sub>v</sub>⟩
+          <br><span class="note">columna <code>contrib_a_dPC1</code>.</span>
+        </span>
+        <p>
+          La clave interpretativa está aquí: una variable solo aporta mucho si <strong>pesa</strong>
+          en PC1 <em>y además</em> <strong>se movió</strong>. Internet domina (w = 0,309;
+          ⟨Δz⟩ = 1,471 ⟹ contrib = 0,454) no por tener el mayor peso, sino por su enorme cambio.
+          El PBI per cápita, en cambio, pesa más (w = 0,408) pero apenas se movió
+          (⟨Δz⟩ = 0,220), de modo que aporta poco (contrib = 0,090).
+        </p>
+
+        <h4>5. Lo que grafican las barras</h4>
+        <p>
+          Cada barra de la Figura 15 es el porcentaje que esa variable representa sobre el
+          corrimiento total:
+        </p>
+        <span class="formula">
+          pct<sub>v</sub> = 100 · contrib<sub>v</sub> / Σ<sub>u</sub> contrib<sub>u</sub>
+          <br><span class="note">columna <code>pct_del_total</code>. El denominador es el
+          corrimiento secular total Σ<sub>u</sub> contrib<sub>u</sub> = ⟨ΔPC1⟩ ≈ 0,958.</span>
+        </span>
+        <p>
+          Por ejemplo, para Internet: 100 × 0,454 / 0,958 ≈ 47,4 %. Por construcción, los
+          porcentajes suman 100 %. Un valor negativo (como inflación, −4,1 %) indica que esa
+          variable empujó el score promedio en <em>sentido contrario</em> al avance general.
+        </p>
+        <p>
+          Esto explica por qué el gráfico se titula corrimiento <strong>absoluto</strong>:
+          descompone el desplazamiento secular (todos los países subiendo juntos en el espacio
+          común, un fenómeno global dominado por la difusión de Internet y las mejoras de salud)
+          y no debe confundirse con cambios en la posición <em>relativa</em> de desarrollo, que
+          se analizan por separado en las Figuras 16 y 17.
+        </p>
+      </details>
+
+      <details open>
+        <summary>Referencias</summary>
+        <p>
+          Las técnicas que exceden el contenido de la materia se describen en la sección
+          anterior. A continuación, las fuentes académicas originales de cada una.
+        </p>
+        <ol class="references">
+          <li id="ref-1">
+            <strong>Yeo-Johnson.</strong> Yeo, I. K. &amp; Johnson, R. A. (2000).
+            A new family of power transformations to improve normality or symmetry.
+            <em>Biometrika</em>, 87(4), 954–959.
+            <a href="https://doi.org/10.1093/biomet/87.4.954" target="_blank" rel="noopener">https://doi.org/10.1093/biomet/87.4.954</a>
+          </li>
+          <li id="ref-2">
+            <strong>Análisis paralelo de Horn.</strong> Horn, J. L. (1965).
+            A rationale and test for the number of factors in factor analysis.
+            <em>Psychometrika</em>, 30(2), 179–185.
+            <a href="https://doi.org/10.1007/BF02289447" target="_blank" rel="noopener">https://doi.org/10.1007/BF02289447</a>
+          </li>
+          <li id="ref-3">
+            <strong>Índice de Rand ajustado.</strong> Hubert, L. &amp; Arabie, P. (1985).
+            Comparing partitions. <em>Journal of Classification</em>, 2(1), 193–218.
+            <a href="https://doi.org/10.1007/BF01908075" target="_blank" rel="noopener">https://doi.org/10.1007/BF01908075</a>
+          </li>
+          <li id="ref-4">
+            <strong>Coeficiente de silueta.</strong> Rousseeuw, P. J. (1987).
+            Silhouettes: a graphical aid to the interpretation and validation of cluster analysis.
+            <em>Journal of Computational and Applied Mathematics</em>, 20, 53–65.
+            <a href="https://doi.org/10.1016/0377-0427(87)90125-7" target="_blank" rel="noopener">https://doi.org/10.1016/0377-0427(87)90125-7</a>
+          </li>
+          <li id="ref-5">
+            <strong>Índice de Calinski-Harabasz.</strong> Caliński, T. &amp; Harabasz, J. (1974).
+            A dendrite method for cluster analysis.
+            <em>Communications in Statistics</em>, 3(1), 1–27.
+            <a href="https://doi.org/10.1080/03610927408827101" target="_blank" rel="noopener">https://doi.org/10.1080/03610927408827101</a>
+          </li>
+          <li id="ref-6">
+            <strong>Índice de Davies-Bouldin.</strong> Davies, D. L. &amp; Bouldin, D. W. (1979).
+            A cluster separation measure.
+            <em>IEEE Transactions on Pattern Analysis and Machine Intelligence</em>, PAMI-1(2), 224–227.
+            <a href="https://doi.org/10.1109/TPAMI.1979.4766909" target="_blank" rel="noopener">https://doi.org/10.1109/TPAMI.1979.4766909</a>
+          </li>
+          <li id="ref-7">
+            <strong>Gap statistic.</strong> Tibshirani, R., Walther, G. &amp; Hastie, T. (2001).
+            Estimating the number of clusters in a data set via the gap statistic.
+            <em>Journal of the Royal Statistical Society: Series B</em>, 63(2), 411–423.
+            <a href="https://doi.org/10.1111/1467-9868.00293" target="_blank" rel="noopener">https://doi.org/10.1111/1467-9868.00293</a>
+          </li>
+          <li id="ref-8">
+            <strong>Estabilidad de clusters por bootstrap.</strong> Hennig, C. (2007).
+            Cluster-wise assessment of cluster stability.
+            <em>Computational Statistics &amp; Data Analysis</em>, 52(1), 258–271.
+            <a href="https://doi.org/10.1016/j.csda.2006.11.025" target="_blank" rel="noopener">https://doi.org/10.1016/j.csda.2006.11.025</a>
+          </li>
+        </ol>
       </details>
     </section>
   </main>

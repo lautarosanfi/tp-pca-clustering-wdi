@@ -60,5 +60,34 @@
     registry
   };
 
+  // Abre un <details> colapsado cuando se navega a él (o a un elemento interno)
+  // mediante un enlace de ancla, y luego desplaza la vista hasta el destino.
+  function openTargetDetails() {
+    const hash = window.location.hash;
+    if (!hash || hash.length < 2) return;
+
+    let target;
+    try {
+      target = document.getElementById(decodeURIComponent(hash.slice(1)));
+    } catch (e) {
+      target = document.getElementById(hash.slice(1));
+    }
+    if (!target) return;
+
+    let node = target;
+    while (node) {
+      if (node.tagName === "DETAILS" && !node.open) {
+        node.open = true;
+      }
+      node = node.parentElement;
+    }
+
+    requestAnimationFrame(() => {
+      target.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  }
+
   enhanceFigures();
+  openTargetDetails();
+  window.addEventListener("hashchange", openTargetDetails);
 }());
