@@ -108,6 +108,19 @@
     stage.appendChild(frame);
   }
 
+  // Ampliación puramente visual: muestra la imagen estática en grande, sin
+  // versión interactiva (para figuras donde el hover/zoom no aporta nada).
+  function openImageZoom(card) {
+    var img = card.querySelector("img.figure-img");
+    if (!img) return;
+    var stage = openModal(figureTitle(card));
+    var big = document.createElement("img");
+    big.className = "modal__img";
+    big.src = img.getAttribute("src");
+    big.alt = img.getAttribute("alt") || "";
+    stage.appendChild(big);
+  }
+
   function openMapChart(card) {
     var stage = openModal(figureTitle(card));
     var mount = document.createElement("div");
@@ -150,9 +163,14 @@
       if (card.hasAttribute("data-inline-interactive")) return;
       var isMap = card.getAttribute("data-chart") === "map-pc1";
       var isChart = card.hasAttribute("data-interactive");
-      if (!isMap && !isChart) return;
+      var isImage = card.hasAttribute("data-zoom-image");
+      if (!isMap && !isChart && !isImage) return;
 
-      var open = function () { isMap ? openMapChart(card) : openIframeChart(card); };
+      var open = function () {
+        if (isMap) openMapChart(card);
+        else if (isChart) openIframeChart(card);
+        else openImageZoom(card);
+      };
 
       var btn = document.createElement("button");
       btn.type = "button";

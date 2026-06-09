@@ -535,10 +535,10 @@ def fig_silhouette(d, k=2):
     _save(fig, f"clust_silhouette_k{k}_2023")
 
 
-def fig_clusters_on_pca(d, k):
+def fig_clusters_on_pca(d, k, ward=False):
     df = d["clusters"]
     evr = np.array(d["pca_info"]["evr"])
-    col = "cluster_k2" if k == 2 else "cluster_k3"
+    col = ("cluster_k2" if k == 2 else "cluster_k3") + ("_ward" if ward else "")
     colors, names = _cluster_style(k)
     fig = go.Figure()
     for c in sorted(df[col].unique()):
@@ -553,14 +553,14 @@ def fig_clusters_on_pca(d, k):
                           "<br>PC2 = %{customdata[1]:.2f}<extra></extra>"))
     fig.add_hline(y=0, line=dict(color=GRIS_MEDIO, width=0.6, dash="dash"))
     fig.add_vline(x=0, line=dict(color=GRIS_MEDIO, width=0.6, dash="dash"))
-    titulo = ("Conglomerados (k=2) sobre el plano del PCA" if k == 2
-              else "Conglomerados (k=3) sobre el plano del PCA")
+    metodo = "Ward" if ward else "k-means"
+    titulo = f"Conglomerados ({metodo}, k={k}) sobre el plano del PCA"
     fig.update_layout(**_layout(f"{titulo} — {config.YEAR_MODERN}", height=640,
                                 legend=dict(title="Conglomerados", font=dict(size=10))))
     fig.update_xaxes(title_text=f"PC1 — gradiente de desarrollo ({evr[0]*100:.1f}%)")
     fig.update_yaxes(title_text=f"PC2 — estructura productiva ({evr[1]*100:.1f}%)")
     _style_axes(fig)
-    _save(fig, f"clust_pca_k{k}_2023")
+    _save(fig, f"clust_pca_k{k}{'_ward' if ward else ''}_2023")
 
 
 # ═════════════════════════════════════════════════════════════════════════════
@@ -712,6 +712,8 @@ def run():
     fig_silhouette(d, k=2)
     fig_clusters_on_pca(d, k=2)
     fig_clusters_on_pca(d, k=3)
+    fig_clusters_on_pca(d, k=2, ward=True)
+    fig_clusters_on_pca(d, k=3, ward=True)
     # Temporal
     fig_trajectories(d)
     fig_transition(d)

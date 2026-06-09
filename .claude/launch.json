@@ -6,6 +6,12 @@
       "runtimeExecutable": "/Users/bdirienzo/Documents/Austral/2026/analisis/tp-pca-clustering-wdi/.venv/bin/python",
       "runtimeArgs": ["-m", "http.server", "8732", "--directory", "/Users/bdirienzo/Documents/Austral/2026/analisis/tp-pca-clustering-wdi/informe_final"],
       "port": 8732
+    },
+    {
+      "name": "informe-win",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["-m", "http.server", "8733", "--directory", "informe_final"],
+      "port": 8733
     }
   ]
 }

@@ -41,7 +41,7 @@
         </article>
         <article>
           <strong>14</strong>
-          <span>indicadores numericos</span>
+          <span>indicadores numéricos</span>
         </article>
         <article>
           <strong>3</strong>
@@ -66,6 +66,7 @@
     <a href="#pca">Técnica 1: PCA</a>
     <a href="#clustering">Técnica 2: Clustering</a>
     <a href="#temporal">Comparación temporal</a>
+    <a href="#sensibilidad">Robustez</a>
     <a href="#conclusiones">Conclusiones</a>
     <a href="#apendice">Apéndice</a>
   </nav>
@@ -76,26 +77,26 @@
       <h2>Una pregunta multivariada sobre el desarrollo</h2>
       <p>
         El desarrollo de un país no puede reducirse a una sola variable. El nivel de
-        ingreso importa, pero también importan la salud de la poblacion, la estructura
+        ingreso importa, pero también importan la salud de la población, la estructura
         productiva, la urbanización, la conectividad, la estabilidad macroeconómica y
-        la forma en que la economia se integra al comercio internacional. Dos países
+        la forma en que la economía se integra al comercio internacional. Dos países
         con un PBI per cápita parecido pueden tener perfiles muy distintos si uno es
         más urbano, más longevo, más conectado o menos dependiente de la agricultura
         que el otro. Por eso el problema pide naturalmente un enfoque multivariado:
-        no se trata solo de ordenar países por una variable, sino de entender que
+        no se trata solo de ordenar países por una variable, sino de entender qué
         dimensiones comunes organizan un conjunto amplio de indicadores y si, a partir
         de esas dimensiones, aparecen grupos de países con perfiles reconocibles.
       </p>
       <p>
         La pregunta que guía el trabajo es la siguiente: <strong>¿cuántas dimensiones
         latentes son necesarias para describir las diferencias de desarrollo entre
-        países y que conglomerados emergen al comparar sus perfiles completos?</strong>
+        países y qué conglomerados emergen al comparar sus perfiles completos?</strong>
         Para responderla se usan dos técnicas complementarias. El Análisis de
         Componentes Principales (PCA) resume variables numéricas correlacionadas en
         ejes ortogonales interpretables; el análisis de conglomerados agrupa países
         por similitud sin imponer de antemano una clasificación. La primera técnica
         permite sintetizar e interpretar; la segunda permite explorar si esa estructura
-        continua se traduce, o no, en grupos empiricamente estables.
+        continua se traduce, o no, en grupos empíricamente estables.
       </p>
       <p>
         La elección de PCA es metodológicamente adecuada porque el conjunto de datos
@@ -105,19 +106,19 @@
         ingreso, la esperanza de vida, la urbanización y el uso de Internet se mueven
         juntos, un componente puede capturar esa dimensión compartida. En cambio, las
         variables categóricas disponibles, región y nivel de ingreso del Banco Mundial,
-        no se incorporan como variables activas porque convertirlas en dummies alteraria
-        las distancias y mezclaria información externa con el espacio construido a
+        no se incorporan como variables activas porque convertirlas en dummies alteraría
+        las distancias y mezclaría información externa con el espacio construido a
         partir de indicadores de desarrollo. Se usan, en cambio, como variables
         suplementarias para interpretar y validar los resultados.
       </p>
       <p>
-        Como hipotesis inicial, esperamos encontrar una dimensión dominante asociada
+        Como hipótesis inicial, esperamos encontrar una dimensión dominante asociada
         al desarrollo general de los países: mayor ingreso, más salud, mayor
         conectividad, mayor urbanización y menor peso de la agricultura. Sin embargo,
         también esperamos que esa dimensión no agote el problema. La composición
         sectorial, la apertura comercial o la coyuntura macroeconómica pueden variar
         con relativa independencia del nivel de desarrollo. El trabajo contrasta esta
-        intuicion con datos, justifica cada decisión de preprocesamiento y evalúa la
+        intuición con datos, justifica cada decisión de preprocesamiento y evalúa la
         robustez de las conclusiones.
       </p>
     </section>
@@ -128,8 +129,8 @@
       <p>
         La base proviene de los <em>World Development Indicators</em> del Banco
         Mundial. La unidad de análisis es el país en un corte transversal anual. Se
-        excluyen agregaciones como regiónes, grupos de ingreso o el total mundial,
-        porque no son unidades comparables con países individuales y distorsionarian
+        excluyen agregaciones como regiones, grupos de ingreso o el total mundial,
+        porque no son unidades comparables con países individuales y distorsionarían
         tanto el PCA como las distancias del clustering. Luego de ese filtrado se
         trabaja con países reales identificados por código ISO-3.
       </p>
@@ -137,13 +138,13 @@
         El corte principal es 2023. Esta decisión no se tomó solamente por ser el año
         más reciente con buena disponibilidad, sino porque evita dos años
         macroeconómicamente atípicos: 2021, dominado por el rebote posterior a la
-        pandemia, y 2022, afectado por el shock inflaciónario global y la guerra en
+        pandemia, y 2022, afectado por el shock inflacionario global y la guerra en
         Ucrania. En métodos basados en varianzas, correlaciones y distancias, esos
         shocks pueden modificar artificialmente la importancia de variables como el
         crecimiento del PBI. El año 2023 conserva cobertura adecuada en las variables
-        finales y representa mejor una situacion macroeconómica normalizada. Para la
+        finales y representa mejor una situación macroeconómica normalizada. Para la
         comparación temporal se elige 2005 como año temprano porque es el primer corte
-        a partir de 2000 en el que todas las variables selecciónadas superan el umbral
+        a partir de 2000 en el que todas las variables seleccionadas superan el umbral
         de cobertura adoptado. Usar 2000 hubiera ampliado la ventana histórica, pero
         a costa de más faltantes y más dependencia de la imputación.
       </p>
@@ -153,20 +154,20 @@
         <p>
           Antes de aplicar las técnicas se asegura que las comparaciones sean justas:
           se trabaja con variables comparables entre países, se filtran unidades que
-          no son países, se controlan faltantes, se corrigen asimetrias fuertes, se
+          no son países, se controlan faltantes, se corrigen asimetrías fuertes, se
           estandariza y recién después se aplican PCA y clustering. El objetivo no es
           forzar un resultado, sino evitar que las escalas, las colas pesadas o la
           cobertura desigual definan artificialmente los componentes y los grupos.
         </p>
       </div>
 
-      <h3>Variables selecciónadas</h3>
+      <h3>Variables seleccionadas</h3>
       <p>
-        Se partio de un conjunto candidato de indicadores económicos, sociales,
+        Se partió de un conjunto candidato de indicadores económicos, sociales,
         productivos y ambientales. La selección final incluye 14 variables numéricas.
-        Se descartaron tres indicadores por razónes metodológicas. El índice de Gini
-        tiene cobertura muy baja y es esporadico, porque depende de encuestas de
-        hogares no siempre disponibles. El gasto publico en educacion presenta baja
+        Se descartaron tres indicadores por razones metodológicas. El índice de Gini
+        tiene cobertura muy baja y es esporádico, porque depende de encuestas de
+        hogares no siempre disponibles. El gasto público en educación presenta baja
         cobertura en años tempranos, lo que comprometería la comparación temporal.
         El INB per cápita en paridad de poder adquisitivo tiene baja cobertura en 2005
         y además es altamente redundante con el PBI per cápita, por lo que duplicaría
@@ -186,7 +187,7 @@
           <thead>
             <tr>
               <th>Dimensión</th>
-              <th>Indicadores numericos</th>
+              <th>Indicadores numéricos</th>
             </tr>
           </thead>
           <tbody>
@@ -199,16 +200,16 @@
               <td>Crecimiento anual del PBI, inflación, desempleo</td>
             </tr>
             <tr>
-              <td>Inversion e insercion comercial</td>
+              <td>Inversión e inserción comercial</td>
               <td>Formación bruta de capital, exportaciones e importaciones como porcentaje del PBI</td>
             </tr>
             <tr>
               <td>Estructura productiva</td>
-              <td>Participacion de agricultura, industria y servicios en el valor agregado</td>
+              <td>Participación de agricultura, industria y servicios en el valor agregado</td>
             </tr>
             <tr>
               <td>Desarrollo social y conectividad</td>
-              <td>Poblacion urbana, esperanza de vida, uso de Internet</td>
+              <td>Población urbana, esperanza de vida, uso de Internet</td>
             </tr>
             <tr>
               <td>Huella ambiental</td>
@@ -234,9 +235,9 @@
         transforma con logaritmo natural porque es estrictamente positivo y recorre
         varios órdenes de magnitud. Las emisiones de CO₂ se transforman con logaritmo
         de uno más la variable, ya que admiten valores cercanos a cero. Variables con
-        fuerte asimetria y posibilidad de valores negativos, como la inflación, se
+        fuerte asimetría y posibilidad de valores negativos, como la inflación, se
         tratan con Yeo-Johnson<span class="refmark"><a href="#ref-1">[1]</a></span>.
-        Otras variables acotadas o con asimetria baja, como
+        Otras variables acotadas o con asimetría baja, como
         urbanización, esperanza de vida, servicios, formación de capital y crecimiento
         del PBI, se dejan sin transformar para no introducir una corrección innecesaria.
         La estandarización se aplica después de transformar: primero se corrige la
@@ -246,7 +247,7 @@
 
     <section class="section" id="eda">
       <p class="section-kicker">Análisis univariado y bivariado</p>
-      <h2>Que forma tienen los datos antes de modelar</h2>
+      <h2>Qué forma tienen los datos antes de modelar</h2>
       <p>
         El análisis exploratorio permite entender el rango y la forma de las variables
         que luego entran al PCA y al clustering. En 2023, el PBI per cápita muestra
@@ -306,10 +307,10 @@
         Las variables categóricas no participan en la construcción de los componentes
         ni de las distancias, pero son útiles para interpretar. Al comparar variables
         clave por nivel de ingreso oficial del Banco Mundial, aparece un patrón
-        monotono: los países de mayor ingreso tienen mayor esperanza de vida, mayor
-        uso de Internet y menor participacion agricola. Esta coherencia valida que los
-        indicadores numericos capturan aspectos sustantivos del desarrollo y no solo
-        variacion técnica o ruido.
+        monótono: los países de mayor ingreso tienen mayor esperanza de vida, mayor
+        uso de Internet y menor participación agrícola. Esta coherencia valida que los
+        indicadores numéricos capturan aspectos sustantivos del desarrollo y no solo
+        variación técnica o ruido.
       </p>
 
       <div class="figure-grid">
@@ -329,7 +330,7 @@
         </div>
           <figcaption>
             <strong>Figura 4.</strong> Composición de la muestra por región y nivel de ingreso.
-            Estas categorias se usan como información suplementaria para interpretar los
+            Estas categorías se usan como información suplementaria para interpretar los
             resultados.
           </figcaption>
         </figure>
@@ -349,7 +350,7 @@
         peso potencial.
       </p>
       <p>
-        La técnica busca combinaciones líneales ortogonales que expliquen la mayor
+        La técnica busca combinaciones lineales ortogonales que expliquen la mayor
         parte posible de la variabilidad. En términos del problema, un componente no
         es una variable nueva arbitraria: es un eje sintético que resume un patrón de
         países. Si ingreso, salud, conectividad y urbanización tienen cargas del mismo
@@ -363,10 +364,10 @@
         La cantidad de componentes no se decide por conveniencia gráfica. Se comparan
         tres criterios: Kaiser, que retiene autovalores mayores a 1; el umbral de 80%
         de varianza acumulada; y el análisis paralelo de Horn<span class="refmark"><a href="#ref-2">[2]</a></span>,
-        que contrasta los autovalores observados contra los que aparecerian en matrices
+        que contrasta los autovalores observados contra los que aparecerían en matrices
         aleatorias con la misma dimensión. Kaiser sugiere
-        4 componentes y el umbral de 80% llevaria a 6; Horn retiene 3. Como Horn
-        controla explicitamente contra estructura que podria surgir por ruido, se
+        4 componentes y el umbral de 80% llevaría a 6; Horn retiene 3. Como Horn
+        controla explícitamente contra estructura que podría surgir por ruido, se
         adopta como criterio principal. Los 3 componentes
         retenidos explican 64,9% de la varianza total, suficiente para interpretar las
         dimensiones dominantes sin forzar una reducción excesiva.
@@ -398,7 +399,7 @@
               <td>PC1</td>
               <td>41,3%</td>
               <td>PBI pc 0,935; agricultura -0,919; Internet 0,896; esperanza de vida 0,874; CO₂ pc 0,807</td>
-              <td>Gradiente de desarrollo: mayor ingreso, conectividad, salud y urbanización frente a menor peso agricola.</td>
+              <td>Gradiente de desarrollo: mayor ingreso, conectividad, salud y urbanización frente a menor peso agrícola.</td>
             </tr>
             <tr>
               <td>PC2</td>
@@ -410,7 +411,7 @@
               <td>PC3</td>
               <td>10,5%</td>
               <td>Crecimiento 0,556; inflación -0,551; importaciones 0,510; exportaciones 0,445</td>
-              <td>Apertura comercial y coyuntura macroeconómica: combina comercio, inversion, crecimiento y estabilidad de precios.</td>
+              <td>Apertura comercial y coyuntura macroeconómica: combina comercio, inversión, crecimiento y estabilidad de precios.</td>
             </tr>
           </tbody>
         </table>
@@ -437,7 +438,7 @@
         de apertura comercial y condiciones macroeconómicas. Exportaciones e
         importaciones cargan positivamente, mientras que la inflación carga en sentido
         contrario, lo que distingue economías más abiertas y con precios relativamente
-        estables de perfiles más cerrados o inflaciónarios.
+        estables de perfiles más cerrados o inflacionarios.
       </p>
 
       <div class="figure-grid">
@@ -455,7 +456,7 @@
           <img class="figure-img" src="figures/pca_circulo_correlaciones_2023.png" alt="Círculo de correlaciones del PCA 2023" loading="lazy">
         </div>
           <figcaption>
-            <strong>Figura 7.</strong> Circulo de correlaciones. Las variables largas estan
+            <strong>Figura 7.</strong> Círculo de correlaciones. Las variables largas están
             bien representadas por el plano PC1-PC2; la oposición entre agricultura y
             desarrollo queda visualmente clara.
           </figcaption>
@@ -466,7 +467,7 @@
         El biplot coloreado por nivel de ingreso confirma que una clasificación externa
         no usada en el ajuste se ordena de manera coherente sobre el PC1. Esto no
         significa que el PCA haya "aprendido" la etiqueta de ingreso, porque esa
-        etiqueta no participo del calculo. Significa que los indicadores numericos
+        etiqueta no participó del cálculo. Significa que los indicadores numéricos
         contienen una estructura suficientemente fuerte como para reconstruir, desde
         otra perspectiva, diferencias sustantivas de desarrollo.
       </p>
@@ -477,8 +478,8 @@
         </div>
         <figcaption>
           <strong>Figura 8.</strong> Biplot PC1-PC2 coloreado por nivel de ingreso. La
-          separacion por ingreso valida el PC1 como gradiente de desarrollo, aunque la
-          categoria no haya sido usada como variable activa.
+          separación por ingreso valida el PC1 como gradiente de desarrollo, aunque la
+          categoría no haya sido usada como variable activa.
         </figcaption>
       </figure>
 
@@ -487,7 +488,7 @@
         Europa Occidental, América del Norte, Australia y Japón concentran los scores más
         altos. África subsahariana y partes del sur de Asia presentan los scores más bajos.
         América Latina ocupa una posición intermedia, con heterogeneidad interna notable.
-        Pasá el cursor sobre cada país para ver el score exacto.
+        Al pasar el cursor sobre cada país se ve el score exacto.
       </p>
 
       <figure class="figure-card figure-card--map" data-chart="map-pc1" data-title="Score PC1 por país (2023)" data-inline-interactive>
@@ -498,7 +499,7 @@
         <figcaption>
           <strong>Figura 9.</strong> Distribución geográfica del score en PC1 (2023).
           Cada país está coloreado según su posición en el primer componente principal.
-          Hover para ver el nombre del país y el score exacto.
+          Al pasar el cursor se ven el nombre del país y el score exacto.
         </figcaption>
       </figure>
     </section>
@@ -509,15 +510,15 @@
       <p>
         El clustering se usa para responder una pregunta distinta a la del PCA. El PCA
         resume dimensiones; el clustering pregunta si los países se agrupan por perfiles
-        completos. Como no se dispone de una etiqueta objetivo que defina a priori que
-        país pertenece a que grupo, corresponde una técnica no supervisada. El objetivo
+        completos. Como no se dispone de una etiqueta objetivo que defina a priori qué
+        país pertenece a qué grupo, corresponde una técnica no supervisada. El objetivo
         no es reemplazar clasificaciones oficiales, sino descubrir si las similitudes
         multivariadas producen una partición interpretable.
       </p>
       <p>
         Una decisión metodológica central es no hacer el clustering principal
         directamente sobre los componentes principales. Aunque reducir con PCA y luego
-        agrupar es una practica frecuente, puede ser riesgosa: el PCA conserva los ejes
+        agrupar es una práctica frecuente, puede ser riesgosa: el PCA conserva los ejes
         de mayor varianza, no necesariamente los ejes que separan mejor grupos. Con 14
         variables no estamos en una dimensión tan alta como para necesitar una reducción
         previa obligatoria. Por eso la partición principal se calcula sobre las 14
@@ -532,17 +533,17 @@
       <h3>Algoritmos, número de grupos y estabilidad</h3>
       <p>
         Se evalúan k-means y clustering jerárquico de Ward. K-means es apropiado como
-        punto de partida porque trabaja con distancia euclídea en un espacio numerico
+        punto de partida porque trabaja con distancia euclídea en un espacio numérico
         estandarizado y produce centros interpretables. Ward sirve como contraste
         jerárquico porque minimiza la varianza intragrupo al fusionar clusters. El
         número de conglomerados se elige por consenso entre métricas internas,
-        estadistico gap y estabilidad por remuestreo. La convergencia favorece k = 2:
+        estadístico gap y estabilidad por remuestreo. La convergencia favorece k = 2:
         silhouette<span class="refmark"><a href="#ref-4">[4]</a></span>,
         Calinski-Harabasz<span class="refmark"><a href="#ref-5">[5]</a></span>,
         Davies-Bouldin<span class="refmark"><a href="#ref-6">[6]</a></span> y
         gap statistic<span class="refmark"><a href="#ref-7">[7]</a></span> apuntan a dos grupos. La
         estabilidad bootstrap<span class="refmark"><a href="#ref-8">[8]</a></span> es muy alta para k = 2, con Jaccard medio de 0,96 y 0,94
-        en los dos grupos. Para k = 3 la solucion sigue siendo informativa, pero menos
+        en los dos grupos. Para k = 3 la solución sigue siendo informativa, pero menos
         estable; para k = 4 un grupo se disuelve.
       </p>
 
@@ -561,8 +562,8 @@
           <img class="figure-img" src="figures/clust_dendrograma_2023.png" alt="Dendrograma de Ward para países 2023" loading="lazy">
         </div>
           <figcaption>
-            <strong>Figura 11.</strong> Dendrograma de Ward. La estructura jerarquica
-            acompaña la idea de una separacion gruesa, no de una taxonomia fina.
+            <strong>Figura 11.</strong> Dendrograma de Ward. La estructura jerárquica
+            acompaña la idea de una separación gruesa, no de una taxonomía fina.
           </figcaption>
         </figure>
       </div>
@@ -571,12 +572,12 @@
         La silueta promedio para k = 2 es 0,277 sobre las 14 variables. Es un valor
         moderado, no excepcional, y eso es sustantivamente coherente: el desarrollo se
         comporta más como un continuo que como un conjunto de bloques perfectamente
-        separados. Metodos alternativos refuerzan esta interpretación. Un modelo de
+        separados. Métodos alternativos refuerzan esta interpretación. Un modelo de
         mezclas gaussianas coincide de forma moderada con k-means (ARI = 0,623), y
         HDBSCAN identifica dos núcleos densos pero deja aproximadamente 59,2% de los
         países como ruido. En otras palabras, el clustering ofrece una macro-separación
-        útil entre países desarrollados y países en vias de desarrollo, pero no debe
-        presentarse como una taxonomia natural y cerrada.
+        útil entre países desarrollados y países en vías de desarrollo, pero no debe
+        presentarse como una taxonomía natural y cerrada.
       </p>
 
       <figure class="figure-card" data-interactive="figures/clust_silhouette_k2_2023.html" data-fig-height="560">
@@ -584,7 +585,7 @@
           <img class="figure-img" src="figures/clust_silhouette_k2_2023.png" alt="Diagrama de silhouette para k igual a 2" loading="lazy">
         </div>
         <figcaption>
-          <strong>Figura 12.</strong> Diagrama de silhouette para k = 2. La separacion es
+          <strong>Figura 12.</strong> Diagrama de silhouette para k = 2. La separación es
           interpretable y estable, pero no perfecta; esto respalda una lectura prudente
           de los conglomerados.
         </figcaption>
@@ -594,11 +595,11 @@
       <p>
         La partición principal produce 70 países en el grupo de menor desarrollo
         relativo y 121 en el grupo de mayor desarrollo relativo. Por claridad
-        interpretativa, los denominamos <strong>países en vias de desarrollo</strong>
-        y <strong>países desarrollados</strong>. Esta denominacion resume perfiles
+        interpretativa, los denominamos <strong>países en vías de desarrollo</strong>
+        y <strong>países desarrollados</strong>. Esta denominación resume perfiles
         multivariados, no juicios normativos. Las medianas muestran diferencias
         sustantivas: el grupo desarrollado tiene un PBI per cápita mediano de 14.933
-        dólares constantes de 2015, contra 1.439 en el grupo en vias de desarrollo;
+        dólares constantes de 2015, contra 1.439 en el grupo en vías de desarrollo;
         esperanza de vida de 77,7 años contra 66,9; uso de Internet de 87,1% contra
         42,2%; y agricultura de 3,0% del PBI contra 19,2%.
       </p>
@@ -609,14 +610,14 @@
           <thead>
             <tr>
               <th>Indicador</th>
-              <th>Países en vias de desarrollo</th>
+              <th>Países en vías de desarrollo</th>
               <th>Países desarrollados</th>
             </tr>
           </thead>
           <tbody>
             <tr><td>PBI per cápita real</td><td>1.439</td><td>14.933</td></tr>
             <tr><td>Esperanza de vida</td><td>66,9 años</td><td>77,7 años</td></tr>
-            <tr><td>Poblacion urbana</td><td>41,2%</td><td>74,0%</td></tr>
+            <tr><td>Población urbana</td><td>41,2%</td><td>74,0%</td></tr>
             <tr><td>Uso de Internet</td><td>42,2%</td><td>87,1%</td></tr>
             <tr><td>Agricultura sobre PBI</td><td>19,2%</td><td>3,0%</td></tr>
             <tr><td>Servicios sobre PBI</td><td>48,0%</td><td>60,3%</td></tr>
@@ -629,11 +630,11 @@
       <p>
         Al cruzar los grupos con el nivel de ingreso oficial del Banco Mundial aparece
         una asociación muy fuerte: chi-cuadrado de 135,8 con p aproximadamente
-        2,2 x 10^-28 para k = 2. El grupo en vias de desarrollo incluye 20 países de
+        2,2 x 10^-28 para k = 2. El grupo en vías de desarrollo incluye 20 países de
         bajo ingreso y 42 de ingreso medio-bajo; el grupo desarrollado contiene 66 de
         los 67 países de ingreso alto y 47 de ingreso medio-alto. Las excepciones son
-        analiticamente interesantes: algunos países de ingreso medio-alto aparecen en
-        el grupo en vias de desarrollo por su estructura productiva, urbanización o
+        analíticamente interesantes: algunos países de ingreso medio-alto aparecen en
+        el grupo en vías de desarrollo por su estructura productiva, urbanización o
         conectividad; algunos de ingreso medio-bajo aparecen en el grupo desarrollado
         por mostrar perfiles estructurales más avanzados que su ingreso.
       </p>
@@ -645,7 +646,7 @@
         </div>
           <figcaption>
             <strong>Figura 13.</strong> Conglomerados principales proyectados sobre el
-            plano del PCA. La separacion ocurre sobre todo a lo largo del gradiente de
+            plano del PCA. La separación ocurre sobre todo a lo largo del gradiente de
             desarrollo.
           </figcaption>
         </figure>
@@ -663,27 +664,31 @@
 
       <p>
         El dendrograma de Ward apunta a k = 3 como corte natural, pero conviene
-        comparar el método jerárquico con k-means en las dos particiones de interes.
+        comparar el método jerárquico con k-means en las dos particiones de interés.
         Por eso repetimos exactamente las dos vistas anteriores —k = 2 y k = 3— pero
         usando el algoritmo de Ward en lugar de k-means. Todo lo demás se mantiene
-        igual: las 14 variables completas, la misma proyeccion sobre PC1 y PC2, y el
+        igual: las 14 variables completas, la misma proyección sobre PC1 y PC2, y el
         mismo criterio de ordenamiento de los grupos por su PC1 medio (de bajo a alto
         desarrollo), de modo que los colores son comparables figura a figura.
       </p>
 
       <div class="figure-grid">
-        <figure class="figure-card" data-chart-id="cluster-pca-k2-ward" data-static-src="figures/clust_pca_k2_ward_2023.png">
-          <img src="figures/clust_pca_k2_ward_2023.png" alt="Conglomerados k igual a 2 con Ward proyectados sobre PC1 y PC2" loading="lazy">
+        <figure class="figure-card" data-interactive="figures/clust_pca_k2_ward_2023.html" data-fig-height="640">
+          <div class="figure-media">
+            <img class="figure-img" src="figures/clust_pca_k2_ward_2023.png" alt="Conglomerados k igual a 2 con Ward proyectados sobre PC1 y PC2" loading="lazy">
+          </div>
           <figcaption>
-            <strong>Figura 15.</strong> Visualizacion extra: misma proyeccion y misma
+            <strong>Figura 15.</strong> Visualización extra: misma proyección y misma
             k = 2 que la Figura 13, pero con clustering jerárquico de Ward en lugar de
             k-means.
           </figcaption>
         </figure>
-        <figure class="figure-card" data-chart-id="cluster-pca-k3-ward" data-static-src="figures/clust_pca_k3_ward_2023.png">
-          <img src="figures/clust_pca_k3_ward_2023.png" alt="Conglomerados k igual a 3 con Ward proyectados sobre PC1 y PC2" loading="lazy">
+        <figure class="figure-card" data-interactive="figures/clust_pca_k3_ward_2023.html" data-fig-height="640">
+          <div class="figure-media">
+            <img class="figure-img" src="figures/clust_pca_k3_ward_2023.png" alt="Conglomerados k igual a 3 con Ward proyectados sobre PC1 y PC2" loading="lazy">
+          </div>
           <figcaption>
-            <strong>Figura 16.</strong> Visualizacion extra: misma proyeccion y misma
+            <strong>Figura 16.</strong> Visualización extra: misma proyección y misma
             k = 3 que la Figura 14, pero con clustering jerárquico de Ward (el método
             del dendrograma) en lugar de k-means.
           </figcaption>
@@ -713,9 +718,9 @@
       <p class="section-kicker">Comparación temporal</p>
       <h2>2005 frente a 2023: estructura estable y movilidad relativa</h2>
       <p>
-        La comparación temporal requiere una precaucion metodológica central. No se
+        La comparación temporal requiere una precaución metodológica central. No se
         pueden ajustar dos PCA independientes, uno para 2005 y otro para 2023, y luego
-        comparar directamente las coordenadas: los ejes podrian rotar, cambiar de signo
+        comparar directamente las coordenadas: los ejes podrían rotar, cambiar de signo
         o escalarse distinto. Por eso la comparación estructural se realiza en un
         espacio común, ajustado sobre los dos años apilados con las mismas
         transformaciones y la misma estandarización. Aun así, comparar posiciones
@@ -726,8 +731,8 @@
         El caso más claro es Internet: su mediana pasa de aproximadamente 10,1% en
         2005 a 81,3% en 2023. La esperanza de vida también aumenta. En el espacio común,
         estas mejoras desplazan a casi todos los países hacia el lado de mayor
-        desarrollo, pero ese desplazamiento no necesariamente significa que un pais
-        haya ganado posición frente a sus contemporaneos. La descomposición del avance
+        desarrollo, pero ese desplazamiento no necesariamente significa que un país
+        haya ganado posición frente a sus contemporáneos. La descomposición del avance
         medio absoluto del PC1 confirma el problema: Internet explica 47,4% del
         corrimiento y la esperanza de vida 22,2%, mientras que el PBI per cápita real
         explica 9,4%. Por eso el informe interpreta el cambio temporal con posición
@@ -740,7 +745,7 @@
         </div>
         <figcaption>
           <strong>Figura 17.</strong> Descomposición del corrimiento absoluto de PC1. El
-          avance común esta dominado por difusion de Internet y mejoras sanitarias, por
+          avance común está dominado por difusión de Internet y mejoras sanitarias, por
           lo que no debe confundirse con desarrollo relativo.
           <a href="#apx-descomposicion">Ver construcción matemática en el apéndice</a>.
         </figcaption>
@@ -752,15 +757,15 @@
         respecto de los países de 2005, no respecto de los estándares de 2023. Con este
         criterio hay 107 países desarrollados sobre 192 en 2005 y 121 sobre 191 en
         2023. La segunda lectura rankea a cada país por percentil de PC1 dentro de su
-        propio año. El cambio de percentil muestra si un país gano o perdio posición
+        propio año. El cambio de percentil muestra si un país ganó o perdió posición
         relativa frente a sus pares.
       </p>
       <p>
-        En el panel común de 183 países, 15 pasan del tier en vias de desarrollo al
+        En el panel común de 183 países, 15 pasan del tier en vías de desarrollo al
         tier desarrollado, y solo 1 realiza el movimiento inverso. Entre los mayores
         ascensos relativos aparecen Georgia, China y Mongolia. Entre los mayores
-        descensos se observan Venezuela, Libano y Argentina, casos consistentes con
-        trayectorias económicas y sociales problematicas en el periodo. La estructura
+        descensos se observan Venezuela, Líbano y Argentina, casos consistentes con
+        trayectorias económicas y sociales problemáticas en el periodo. La estructura
         del PC1, sin embargo, permanece estable: la congruencia de Tucker entre las
         cargas de 2005 y 2023 es 0,962 y la correlación entre cargas es 0,946. Es decir,
         el significado del gradiente de desarrollo se mantiene; lo que cambia es la
@@ -778,7 +783,7 @@
             debajo pierden posición.
           </figcaption>
         </figure>
-        <figure class="figure-card" data-interactive="figures/compare_transiciones.html" data-fig-height="420">
+        <figure class="figure-card" data-zoom-image>
         <div class="figure-media">
           <img class="figure-img" src="figures/compare_transiciones.png" alt="Transiciones de tier relativo entre 2005 y 2023" loading="lazy">
         </div>
@@ -803,11 +808,11 @@
 
     <section class="section" id="sensibilidad">
       <p class="section-kicker">Robustez</p>
-      <h2>Análisis de sensibilidad y limites de interpretación</h2>
+      <h2>Análisis de sensibilidad y límites de interpretación</h2>
       <p>
         Una conclusión es confiable si no depende de una sola decisión técnica. Para
         comprobarlo, se fija una <strong>configuración base</strong> —estandarización
-        clásica (restar la media y dividir por el desvio), imputación de faltantes por
+        clásica (restar la media y dividir por el desvío), imputación de faltantes por
         vecinos más cercanos (KNN), las 14 variables completas y k-means con k = 2— y se
         la compara contra variantes razonables: otra forma de imputar, otro escalado,
         clusterizar sobre componentes en lugar de variables, y quitar países atípicos.
@@ -817,7 +822,7 @@
         <strong>índice de Rand ajustado (ARI)</strong>, responde a la pregunta
         &laquo;¿quedan los mismos países agrupados juntos?&raquo;: vale 1 cuando la
         partición es idéntica a la base, alrededor de 0 cuando el parecido es el que se
-        esperaria por azar, y puede ser negativo si es aún peor. El segundo, la
+        esperaría por azar, y puede ser negativo si es aún peor. El segundo, la
         <strong>correlación de las cargas de PC1</strong>, responde a &laquo;¿el eje de
         desarrollo significa lo mismo?&raquo;: compara el peso que cada variable tiene
         sobre PC1 en la variante contra el de la base, de modo que un valor cercano a 1
@@ -826,7 +831,7 @@
         se mantiene.
       </p>
       <p>
-        Leida con esa clave, la tabla muestra que casi todo es estable. La forma de
+        Leída con esa clave, la tabla muestra que casi todo es estable. La forma de
         imputar es indiferente: tanto MICE (un método iterativo alternativo) como
         descartar los faltantes y quedarse solo con casos completos reproducen
         prácticamente la misma partición y el mismo PC1 que KNN, señal de que los datos
@@ -838,13 +843,13 @@
       <p>
         La única excepción es instructiva: reemplazar la estandarización clásica por un
         <strong>escalado robusto</strong> (que divide por el rango intercuartil en vez
-        de por el desvio) sobre todos los países rompe la partición (ARI = -0,004) y
+        de por el desvío) sobre todos los países rompe la partición (ARI = -0,004) y
         cambia por completo el significado de PC1. El motivo es puntual y no general: el
         crecimiento del PBI de Macao en 2023 es un valor extremo, y al dividir por un
         rango intercuartil pequeño ese dato se amplifica tanto que el PCA —que persigue
         la mayor varianza— lo toma como eje principal. Al quitar solo ese país, el
         resultado se recompone en gran medida (ARI = 0,743). Esta prueba justifica la
-        estandarización clásica de la base: el desvio estándar absorbe mejor esa cola
+        estandarización clásica de la base: el desvío estándar absorbe mejor esa cola
         extrema y evita que un rebote puntual secuestre el primer componente.
       </p>
 
@@ -880,7 +885,7 @@
         transversal y descriptivo, por lo que no identifica relaciones causales. El
         clustering resume una macro-separación útil, pero el desarrollo se comporta
         como un continuo; por eso los grupos deben interpretarse como perfiles
-        agregados y no como categorias naturales rígidas. La comparación temporal se
+        agregados y no como categorías naturales rígidas. La comparación temporal se
         basa en posición relativa para evitar confundir progreso secular global con
         movilidad frente a pares. Finalmente, los indicadores del Banco Mundial pueden
         tener rezagos, revisiones y cambios de definición, razón por la cual se trabaja
@@ -893,9 +898,9 @@
       <h2>Resultados principales</h2>
       <p>
         El desarrollo de los países presenta una dimensión dominante, pero no es
-        estrictamente unidimensiónal. El primer componente del PCA explica 41,3% de la
+        estrictamente unidimensional. El primer componente del PCA explica 41,3% de la
         variabilidad y se interpreta de forma clara como un gradiente de desarrollo:
-        combina ingreso real, salud, conectividad, urbanización y menor peso agricola.
+        combina ingreso real, salud, conectividad, urbanización y menor peso agrícola.
         Sin embargo, los componentes siguientes muestran que también importan la
         estructura productiva, la apertura comercial y la coyuntura macroeconómica.
         En consecuencia, el PBI per cápita es central, pero no suficiente para describir
@@ -903,22 +908,22 @@
       </p>
       <p>
         El clustering identifica una macro-separación robusta entre países desarrollados
-        y países en vias de desarrollo. La partición de dos grupos esta respaldada por
+        y países en vías de desarrollo. La partición de dos grupos está respaldada por
         métricas internas, estabilidad bootstrap y una fuerte asociación con el nivel
         de ingreso oficial del Banco Mundial. A la vez, la evidencia obliga a una
         interpretación cuidadosa: la silueta es moderada y HDBSCAN encuentra un gran
-        conjunto de puntos intermedios, por lo que el fenomeno se entiende mejor como
+        conjunto de puntos intermedios, por lo que el fenómeno se entiende mejor como
         un gradiente con cortes útiles que como un conjunto de grupos naturalmente
         separados.
       </p>
       <p>
         Entre 2005 y 2023, la estructura del desarrollo se mantiene estable. Lo que
         cambia con fuerza es el nivel absoluto de ciertas variables, especialmente la
-        difusion de Internet y la esperanza de vida. Por eso la comparación valida no
+        difusión de Internet y la esperanza de vida. Por eso la comparación válida no
         es preguntar si todos los países se movieron hacia la derecha del PC1, sino si
-        ganaron o perdieron posición relativa frente a sus contemporaneos. Bajo esa
+        ganaron o perdieron posición relativa frente a sus contemporáneos. Bajo esa
         lectura, 15 países ascienden de tier y 1 desciende en el panel común. China,
-        Georgia y Mongolia muestran ascensos relativos destacados; Venezuela, Libano
+        Georgia y Mongolia muestran ascensos relativos destacados; Venezuela, Líbano
         y Argentina pierden posición relativa de forma marcada.
       </p>
       <p>
@@ -935,7 +940,7 @@
 
     <section class="section appendix" id="apendice">
       <p class="section-kicker">Apéndice</p>
-      <h2>Reproducibilidad, archivos y preparacion para interactividad</h2>
+      <h2>Reproducibilidad, archivos y preparación para interactividad</h2>
       <details open>
         <summary>Archivos principales del proyecto</summary>
         <ul>
@@ -985,11 +990,23 @@
             el modal el <code>&lt;iframe&gt;</code> se descarta y la figura vuelve a su estado estático.
           </li>
           <li>
+            Algunas figuras clave (scree, biplot, mapa, descomposición del corrimiento
+            de PC1 y comparación de cargas) están marcadas con
+            <code>data-inline-interactive</code> y se embeben ya interactivas en la
+            página, sin pasar por el modal; su <code>.png</code> queda oculto como
+            respaldo de impresión.
+          </li>
+          <li>
+            Las figuras marcadas con <code>data-zoom-image</code> (las transiciones de
+            tier, Figura 19) se amplían mostrando solo la imagen estática en grande:
+            ahí el <em>hover</em> no aporta información adicional.
+          </li>
+          <li>
             El <strong>mapa</strong> es un caso especial: se dibuja con Plotly directamente
             en la página a partir de <code>assets/worldmap.data.js</code> (un volcado de
-            <code>pca_scores_2023.csv</code>). En la página se renderiza en modo
-            <code>staticPlot</code> (sin interacción) y al ampliarlo se vuelve a dibujar con
-            <em>hover</em>, zoom y paneo activos.
+            <code>pca_scores_2023.csv</code>), con <em>hover</em>, zoom y paneo activos.
+            La geometría mundial se descarga de la CDN de Plotly, por lo que el mapa
+            requiere conexión a internet; el resto del informe funciona sin conexión.
           </li>
         </ul>
         <p>
@@ -1164,9 +1181,9 @@
       </details>
 
       <details id="apx-descomposicion">
-        <summary>Construcción matemática de la descomposición del corrimiento de PC1 (Figura 15)</summary>
+        <summary>Construcción matemática de la descomposición del corrimiento de PC1 (Figura 17)</summary>
         <p>
-          La Figura 15 muestra, para cada variable, qué fracción del avance promedio de PC1
+          La Figura 17 muestra, para cada variable, qué fracción del avance promedio de PC1
           entre 2005 y 2023 explica esa variable. Los valores no son arbitrarios: se derivan
           de que PC1 es una combinación lineal exacta de las variables. A continuación se
           detalla cómo se construye cada columna de la tabla <code>descomposicion_dPC1.csv</code>
@@ -1238,7 +1255,7 @@
 
         <h4>5. Lo que grafican las barras</h4>
         <p>
-          Cada barra de la Figura 15 es el porcentaje que esa variable representa sobre el
+          Cada barra de la Figura 17 es el porcentaje que esa variable representa sobre el
           corrimiento total:
         </p>
         <span class="formula">
@@ -1256,7 +1273,7 @@
           descompone el desplazamiento secular (todos los países subiendo juntos en el espacio
           común, un fenómeno global dominado por la difusión de Internet y las mejoras de salud)
           y no debe confundirse con cambios en la posición <em>relativa</em> de desarrollo, que
-          se analizan por separado en las Figuras 16 y 17.
+          se analizan por separado en las Figuras 18 y 19.
         </p>
       </details>
 
