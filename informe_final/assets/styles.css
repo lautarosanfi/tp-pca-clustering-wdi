@@ -228,6 +228,19 @@ main {
   background: #fff;
 }
 
+/* Figuras interactivas siempre: iframe vivo embebido en la página, sin ampliar. */
+.figure-frame {
+  width: 100%;
+  border: 0;
+  display: block;
+  background: #fff;
+}
+
+/* Con la figura interactiva inline, la imagen estática solo sirve de respaldo. */
+.is-inline-interactive .figure-img {
+  display: none;
+}
+
 .is-zoomable .figure-img,
 .is-zoomable .map-mount {
   cursor: zoom-in;
@@ -506,8 +519,14 @@ body.is-modal-open {
 
   .toc,
   .figure-expand,
+  .figure-frame,
   .modal {
     display: none !important;
+  }
+
+  /* Al imprimir, las figuras interactivas inline muestran su imagen estática. */
+  .is-inline-interactive .figure-img {
+    display: block !important;
   }
 
   .cover,

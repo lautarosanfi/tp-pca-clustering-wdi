@@ -120,9 +120,34 @@
       });
   }
 
+  /* ─────────── Figuras interactivas siempre (embebidas en la página) ──────────── */
+  // Algunas figuras (marcadas con data-inline-interactive) se muestran ya
+  // interactivas en la página, sin botón "Ampliar" ni modal. Los gráficos Plotly
+  // se embeben en un iframe vivo; el .png se conserva oculto como respaldo de
+  // impresión. El mapa se gestiona aparte en initInlineMap().
+  function inlineInteractiveFigures() {
+    document.querySelectorAll(".figure-card[data-inline-interactive]").forEach(function (card) {
+      var src = card.getAttribute("data-interactive");
+      if (!src) return; // el mapa (data-chart="map-pc1") no usa iframe
+      var media = card.querySelector(".figure-media");
+      if (!media) return;
+      card.classList.add("is-inline-interactive");
+      var h = parseInt(card.getAttribute("data-fig-height"), 10) || 640;
+      var frame = document.createElement("iframe");
+      frame.className = "figure-frame";
+      frame.setAttribute("title", figureTitle(card) || "Gráfico interactivo");
+      frame.setAttribute("loading", "lazy");
+      frame.style.height = h + "px";
+      frame.src = src;
+      media.appendChild(frame);
+    });
+  }
+
   /* ─────────────────────────── Mejora de figuras (botón Ampliar) ─────────────────── */
   function enhanceFigures() {
     document.querySelectorAll(".figure-card").forEach(function (card) {
+      // Las figuras interactivas inline no se amplían.
+      if (card.hasAttribute("data-inline-interactive")) return;
       var isMap = card.getAttribute("data-chart") === "map-pc1";
       var isChart = card.hasAttribute("data-interactive");
       if (!isMap && !isChart) return;
@@ -161,12 +186,16 @@
     var mount = card.querySelector(".map-mount");
     if (!mount) return;
 
+    // Si la figura está marcada como interactiva inline, el mapa se renderiza
+    // ya interactivo (hover, zoom, paneo); si no, estático como antes.
+    var interactive = card.hasAttribute("data-inline-interactive");
+
     var done = false;
     var render = function () {
       if (done) return;
       done = true;
       loadPlotly()
-        .then(function () { return WorldMap.render(mount, { interactive: false }); })
+        .then(function () { return WorldMap.render(mount, { interactive: interactive }); })
         .then(function () { card.classList.add("map-ready"); })
         .catch(function () { card.classList.add("map-ready"); });
     };
@@ -201,6 +230,7 @@
   }
 
   /* ─────────────────────────────────── Arranque ─────────────────────────────────── */
+  inlineInteractiveFigures();
   enhanceFigures();
   initInlineMap();
   openTargetDetails();
