@@ -6,6 +6,8 @@
   <title>Informe final - PCA y clustering de indicadores de desarrollo</title>
   <meta name="description" content="Informe final de Análisis Multivariado y Descubrimiento de Patrones sobre indicadores de desarrollo del Banco Mundial.">
   <link rel="stylesheet" href="assets/styles.css">
+  <script src="assets/worldmap.data.js" defer></script>
+  <script src="assets/worldmap.js" defer></script>
   <script src="assets/report.js" defer></script>
 </head>
 <body>
@@ -264,8 +266,10 @@
         su escala o por una cola extremadamente pesada.
       </p>
 
-      <figure class="figure-card" data-chart-id="eda-distribuciones" data-static-src="figures/eda_histogramas_2023.png">
-        <img src="figures/eda_histogramas_2023.png" alt="Histogramas univariados de los 14 indicadores en 2023" loading="lazy">
+      <figure class="figure-card" data-interactive="figures/eda_histogramas_2023.html" data-fig-height="960">
+        <div class="figure-media">
+          <img class="figure-img" src="figures/eda_histogramas_2023.png" alt="Histogramas univariados de los 14 indicadores en 2023" loading="lazy">
+        </div>
         <figcaption>
           <strong>Figura 1.</strong> Distribuciones univariadas de los indicadores en 2023.
           Las formas justifican transformaciones específicas: logaritmos para variables
@@ -286,8 +290,10 @@
         redundancia multivariada, exactamente el tipo de estructura que el PCA resume.
       </p>
 
-      <figure class="figure-card" data-chart-id="eda-correlacion" data-static-src="figures/eda_correlacion_2023.png">
-        <img src="figures/eda_correlacion_2023.png" alt="Matriz de correlación de variables transformadas en 2023" loading="lazy">
+      <figure class="figure-card" data-interactive="figures/eda_correlacion_2023.html" data-fig-height="720">
+        <div class="figure-media">
+          <img class="figure-img" src="figures/eda_correlacion_2023.png" alt="Matriz de correlación de variables transformadas en 2023" loading="lazy">
+        </div>
         <figcaption>
           <strong>Figura 2.</strong> Correlaciones de Pearson entre variables transformadas.
           La asociación positiva entre ingreso, salud, conectividad y urbanización, junto
@@ -307,16 +313,20 @@
       </p>
 
       <div class="figure-grid">
-        <figure class="figure-card" data-chart-id="eda-boxplots-ingreso" data-static-src="figures/eda_boxplots_ingreso_2023.png">
-          <img src="figures/eda_boxplots_ingreso_2023.png" alt="Boxplots de variables clave por nivel de ingreso en 2023" loading="lazy">
+        <figure class="figure-card" data-interactive="figures/eda_boxplots_ingreso_2023.html" data-fig-height="720">
+        <div class="figure-media">
+          <img class="figure-img" src="figures/eda_boxplots_ingreso_2023.png" alt="Boxplots de variables clave por nivel de ingreso en 2023" loading="lazy">
+        </div>
           <figcaption>
             <strong>Figura 3.</strong> Variables clave por nivel de ingreso. Las diferencias
             entre grupos oficiales funcionan como validación externa de la estructura
             multivariada.
           </figcaption>
         </figure>
-        <figure class="figure-card" data-chart-id="eda-categoricas" data-static-src="figures/eda_categoricas_2023.png">
-          <img src="figures/eda_categoricas_2023.png" alt="Distribución de países por región y nivel de ingreso" loading="lazy">
+        <figure class="figure-card" data-interactive="figures/eda_categoricas_2023.html" data-fig-height="480">
+        <div class="figure-media">
+          <img class="figure-img" src="figures/eda_categoricas_2023.png" alt="Distribución de países por región y nivel de ingreso" loading="lazy">
+        </div>
           <figcaption>
             <strong>Figura 4.</strong> Composición de la muestra por región y nivel de ingreso.
             Estas categorias se usan como información suplementaria para interpretar los
@@ -362,8 +372,10 @@
         dimensiones dominantes sin forzar una reducción excesiva.
       </p>
 
-      <figure class="figure-card" data-chart-id="pca-scree" data-static-src="figures/pca_scree_2023.png">
-        <img src="figures/pca_scree_2023.png" alt="Scree plot y análisis paralelo de Horn para PCA 2023" loading="lazy">
+      <figure class="figure-card" data-interactive="figures/pca_scree_2023.html" data-fig-height="480">
+        <div class="figure-media">
+          <img class="figure-img" src="figures/pca_scree_2023.png" alt="Scree plot y análisis paralelo de Horn para PCA 2023" loading="lazy">
+        </div>
         <figcaption>
           <strong>Figura 5.</strong> Scree plot, análisis paralelo de Horn y varianza
           acumulada. La decisión final retiene 3 componentes para interpretación.
@@ -429,15 +441,19 @@
       </p>
 
       <div class="figure-grid">
-        <figure class="figure-card" data-chart-id="pca-loadings" data-static-src="figures/pca_loadings_barras_2023.png">
-          <img src="figures/pca_loadings_barras_2023.png" alt="Cargas de los tres primeros componentes principales" loading="lazy">
+        <figure class="figure-card" data-interactive="figures/pca_loadings_barras_2023.html" data-fig-height="620">
+        <div class="figure-media">
+          <img class="figure-img" src="figures/pca_loadings_barras_2023.png" alt="Cargas de los tres primeros componentes principales" loading="lazy">
+        </div>
           <figcaption>
             <strong>Figura 6.</strong> Cargas de PC1, PC2 y PC3. Las cargas permiten nombrar
             cada eje en términos del problema.
           </figcaption>
         </figure>
-        <figure class="figure-card" data-chart-id="pca-circulo" data-static-src="figures/pca_circulo_correlaciones_2023.png">
-          <img src="figures/pca_circulo_correlaciones_2023.png" alt="Círculo de correlaciones del PCA 2023" loading="lazy">
+        <figure class="figure-card" data-interactive="figures/pca_circulo_correlaciones_2023.html" data-fig-height="640">
+        <div class="figure-media">
+          <img class="figure-img" src="figures/pca_circulo_correlaciones_2023.png" alt="Círculo de correlaciones del PCA 2023" loading="lazy">
+        </div>
           <figcaption>
             <strong>Figura 7.</strong> Circulo de correlaciones. Las variables largas estan
             bien representadas por el plano PC1-PC2; la oposición entre agricultura y
@@ -455,8 +471,10 @@
         otra perspectiva, diferencias sustantivas de desarrollo.
       </p>
 
-      <figure class="figure-card" data-chart-id="pca-biplot-ingreso" data-static-src="figures/pca_biplot_ingreso_2023.png">
-        <img src="figures/pca_biplot_ingreso_2023.png" alt="Biplot del PCA coloreado por nivel de ingreso" loading="lazy">
+      <figure class="figure-card" data-interactive="figures/pca_biplot_ingreso_2023.html" data-fig-height="680">
+        <div class="figure-media">
+          <img class="figure-img" src="figures/pca_biplot_ingreso_2023.png" alt="Biplot del PCA coloreado por nivel de ingreso" loading="lazy">
+        </div>
         <figcaption>
           <strong>Figura 8.</strong> Biplot PC1-PC2 coloreado por nivel de ingreso. La
           separacion por ingreso valida el PC1 como gradiente de desarrollo, aunque la
@@ -472,15 +490,11 @@
         Pasá el cursor sobre cada país para ver el score exacto.
       </p>
 
-      <figure class="figure-card" data-chart-id="pca-mapa-pc1" data-static-src="figures/map_pc1_2023.png">
-        <iframe
-          src="figures/map_pc1_2023.html"
-          width="100%"
-          height="540"
-          style="border:none; display:block; border-radius:6px;"
-          loading="lazy"
-          title="Mapa interactivo: score PC1 por país, 2023"
-        ></iframe>
+      <figure class="figure-card figure-card--map" data-chart="map-pc1" data-title="Score PC1 por país (2023)">
+        <div class="figure-media">
+          <div class="map-mount" role="img" aria-label="Mapa: score PC1 por país en 2023"></div>
+          <img class="figure-img map-print" src="figures/map_pc1_2023.png" alt="Mapa interactivo: score PC1 por país, 2023" loading="lazy">
+        </div>
         <figcaption>
           <strong>Figura 9.</strong> Distribución geográfica del score en PC1 (2023).
           Cada país está coloreado según su posición en el primer componente principal.
@@ -533,15 +547,19 @@
       </p>
 
       <div class="figure-grid">
-        <figure class="figure-card" data-chart-id="cluster-metricas" data-static-src="figures/clust_metricas_k_2023.png">
-          <img src="figures/clust_metricas_k_2023.png" alt="Métricas internas para selección de k" loading="lazy">
+        <figure class="figure-card" data-interactive="figures/clust_metricas_k_2023.html" data-fig-height="720">
+        <div class="figure-media">
+          <img class="figure-img" src="figures/clust_metricas_k_2023.png" alt="Métricas internas para selección de k" loading="lazy">
+        </div>
           <figcaption>
             <strong>Figura 10.</strong> Criterios internos para elegir k. La evidencia
             converge en dos conglomerados como partición principal.
           </figcaption>
         </figure>
-        <figure class="figure-card" data-chart-id="cluster-dendrograma" data-static-src="figures/clust_dendrograma_2023.png">
-          <img src="figures/clust_dendrograma_2023.png" alt="Dendrograma de Ward para países 2023" loading="lazy">
+        <figure class="figure-card" data-interactive="figures/clust_dendrograma_2023.html" data-fig-height="520">
+        <div class="figure-media">
+          <img class="figure-img" src="figures/clust_dendrograma_2023.png" alt="Dendrograma de Ward para países 2023" loading="lazy">
+        </div>
           <figcaption>
             <strong>Figura 11.</strong> Dendrograma de Ward. La estructura jerarquica
             acompaña la idea de una separacion gruesa, no de una taxonomia fina.
@@ -561,8 +579,10 @@
         presentarse como una taxonomia natural y cerrada.
       </p>
 
-      <figure class="figure-card" data-chart-id="cluster-silueta-k2" data-static-src="figures/clust_silhouette_k2_2023.png">
-        <img src="figures/clust_silhouette_k2_2023.png" alt="Diagrama de silhouette para k igual a 2" loading="lazy">
+      <figure class="figure-card" data-interactive="figures/clust_silhouette_k2_2023.html" data-fig-height="560">
+        <div class="figure-media">
+          <img class="figure-img" src="figures/clust_silhouette_k2_2023.png" alt="Diagrama de silhouette para k igual a 2" loading="lazy">
+        </div>
         <figcaption>
           <strong>Figura 12.</strong> Diagrama de silhouette para k = 2. La separacion es
           interpretable y estable, pero no perfecta; esto respalda una lectura prudente
@@ -619,16 +639,20 @@
       </p>
 
       <div class="figure-grid">
-        <figure class="figure-card" data-chart-id="cluster-pca-k2" data-static-src="figures/clust_pca_k2_2023.png">
-          <img src="figures/clust_pca_k2_2023.png" alt="Conglomerados k igual a 2 proyectados sobre PC1 y PC2" loading="lazy">
+        <figure class="figure-card" data-interactive="figures/clust_pca_k2_2023.html" data-fig-height="640">
+        <div class="figure-media">
+          <img class="figure-img" src="figures/clust_pca_k2_2023.png" alt="Conglomerados k igual a 2 proyectados sobre PC1 y PC2" loading="lazy">
+        </div>
           <figcaption>
             <strong>Figura 13.</strong> Conglomerados principales proyectados sobre el
             plano del PCA. La separacion ocurre sobre todo a lo largo del gradiente de
             desarrollo.
           </figcaption>
         </figure>
-        <figure class="figure-card" data-chart-id="cluster-pca-k3" data-static-src="figures/clust_pca_k3_2023.png">
-          <img src="figures/clust_pca_k3_2023.png" alt="Conglomerados k igual a 3 proyectados sobre PC1 y PC2" loading="lazy">
+        <figure class="figure-card" data-interactive="figures/clust_pca_k3_2023.html" data-fig-height="640">
+        <div class="figure-media">
+          <img class="figure-img" src="figures/clust_pca_k3_2023.png" alt="Conglomerados k igual a 3 proyectados sobre PC1 y PC2" loading="lazy">
+        </div>
           <figcaption>
             <strong>Figura 14.</strong> Vista complementaria con k = 3. Divide el continuo
             en bajo desarrollo, emergente y desarrollado, pero se reporta como lectura
@@ -663,8 +687,10 @@
         relativa dentro de cada año, no con coordenadas absolutas.
       </p>
 
-      <figure class="figure-card" data-chart-id="temporal-descomposición" data-static-src="figures/compare_descomposicion_dPC1.png">
-        <img src="figures/compare_descomposicion_dPC1.png" alt="Descomposición del avance absoluto del PC1 entre 2005 y 2023" loading="lazy">
+      <figure class="figure-card" data-interactive="figures/compare_descomposicion_dPC1.html" data-fig-height="560">
+        <div class="figure-media">
+          <img class="figure-img" src="figures/compare_descomposicion_dPC1.png" alt="Descomposición del avance absoluto del PC1 entre 2005 y 2023" loading="lazy">
+        </div>
         <figcaption>
           <strong>Figura 15.</strong> Descomposición del corrimiento absoluto de PC1. El
           avance común esta dominado por difusion de Internet y mejoras sanitarias, por
@@ -695,16 +721,20 @@
       </p>
 
       <div class="figure-grid">
-        <figure class="figure-card" data-chart-id="temporal-trayectorias" data-static-src="figures/compare_trayectorias.png">
-          <img src="figures/compare_trayectorias.png" alt="Movilidad relativa de países entre 2005 y 2023" loading="lazy">
+        <figure class="figure-card" data-interactive="figures/compare_trayectorias.html" data-fig-height="680">
+        <div class="figure-media">
+          <img class="figure-img" src="figures/compare_trayectorias.png" alt="Movilidad relativa de países entre 2005 y 2023" loading="lazy">
+        </div>
           <figcaption>
             <strong>Figura 16.</strong> Movilidad relativa. Los puntos sobre la diagonal
             mantienen posición relativa; por encima ascienden frente a sus pares; por
             debajo pierden posición.
           </figcaption>
         </figure>
-        <figure class="figure-card" data-chart-id="temporal-transiciones" data-static-src="figures/compare_transiciones.png">
-          <img src="figures/compare_transiciones.png" alt="Transiciones de tier relativo entre 2005 y 2023" loading="lazy">
+        <figure class="figure-card" data-interactive="figures/compare_transiciones.html" data-fig-height="420">
+        <div class="figure-media">
+          <img class="figure-img" src="figures/compare_transiciones.png" alt="Transiciones de tier relativo entre 2005 y 2023" loading="lazy">
+        </div>
           <figcaption>
             <strong>Figura 17.</strong> Transiciones de tier relativo. Predomina la
             permanencia, con 15 ascensos y 1 descenso entre los países del panel común.
@@ -712,8 +742,10 @@
         </figure>
       </div>
 
-      <figure class="figure-card" data-chart-id="temporal-loadings" data-static-src="figures/compare_loadings_pc1.png">
-        <img src="figures/compare_loadings_pc1.png" alt="Comparación de cargas del PC1 entre 2005 y 2023" loading="lazy">
+      <figure class="figure-card" data-interactive="figures/compare_loadings_pc1.html" data-fig-height="620">
+        <div class="figure-media">
+          <img class="figure-img" src="figures/compare_loadings_pc1.png" alt="Comparación de cargas del PC1 entre 2005 y 2023" loading="lazy">
+        </div>
         <figcaption>
           <strong>Figura 18.</strong> Estabilidad de las cargas del PC1 entre 2005 y 2023.
           Los puntos cercanos a la diagonal muestran que el eje de desarrollo conserva
@@ -862,12 +894,38 @@
       <details>
         <summary>Estructura HTML para gráficos interactivos</summary>
         <p>
-          Cada figura del informe está encapsulada en un bloque <code>figure.figure-card</code>
-          con atributos <code>data-chart-id</code> y <code>data-static-src</code>. Esto permite
-          reemplazar más adelante una imagen estática por un gráfico interactivo sin
-          reescribir el texto del informe: basta con montar el gráfico en el mismo
-          contenedor o registrar una función asociada al identificador correspondiente
-          en <code>assets/report.js</code>.
+          Cada figura se encapsula en un bloque <code>figure.figure-card</code>. El informe
+          adopta un modelo <strong>estático por defecto, interactivo bajo demanda</strong>,
+          para que la lectura y el desplazamiento de la página nunca queden capturados por
+          el zoom o el <em>hover</em> de un gráfico:
+        </p>
+        <ul>
+          <li>
+            <strong>En la página</strong> cada figura se muestra como una imagen estática
+            (<code>img.figure-img</code> apuntando al <code>.png</code>). No tiene zoom,
+            <em>tooltips</em> ni desplazamiento: es solo lectura.
+          </li>
+          <li>
+            <strong>Al pulsar «Ampliar»</strong> (o hacer clic sobre la figura) se abre un
+            modal a pantalla casi completa donde se carga la versión interactiva de Plotly
+            desde <code>figures/&lt;nombre&gt;.html</code> dentro de un <code>&lt;iframe&gt;</code>.
+            Solo ahí se habilitan <em>hover</em> con valores exactos, zoom y paneo. Al cerrar
+            el modal el <code>&lt;iframe&gt;</code> se descarta y la figura vuelve a su estado estático.
+          </li>
+          <li>
+            El <strong>mapa</strong> es un caso especial: se dibuja con Plotly directamente
+            en la página a partir de <code>assets/worldmap.data.js</code> (un volcado de
+            <code>pca_scores_2023.csv</code>). En la página se renderiza en modo
+            <code>staticPlot</code> (sin interacción) y al ampliarlo se vuelve a dibujar con
+            <em>hover</em>, zoom y paneo activos.
+          </li>
+        </ul>
+        <p>
+          La interactividad y el modal viven en <code>assets/report.js</code>; la construcción
+          del mapa en <code>assets/worldmap.js</code>; los estilos en <code>assets/styles.css</code>.
+          Los HTML interactivos por figura se generan con <code>src/interactive.py</code> (más una
+          copia única de <code>plotly.min.js</code> para funcionar sin conexión) y los PNG provienen
+          del pipeline de análisis (<code>eda</code>/<code>pca</code>/<code>clustering</code>/<code>compare_years</code>).
         </p>
       </details>
 
