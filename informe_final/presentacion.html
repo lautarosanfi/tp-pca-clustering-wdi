@@ -363,7 +363,7 @@
         <li>Transformaciones variable por variable: <b>log</b> (PBI pc), <b>log1p</b> (CO₂ pc), <b>Yeo-Johnson</b> para colas con valores negativos como inflación.</li>
         <li>Primero se corrige la <span class="hl">forma</span>, luego se igualan las <span class="hl">escalas</span>.</li>
       </ul>
-      <figure class="figpane" data-src="informe_final/figures/eda_histogramas_2023.html">
+      <figure class="figpane" data-src="figures/eda_histogramas_2023.html">
         <div class="loading"><span class="dot"></span> Cargando gráfico interactivo…</div>
         <figcaption class="figcap">Distribuciones univariadas de los 14 indicadores (2023). <span class="hint">Hover / zoom dentro del gráfico.</span></figcaption>
       </figure>
@@ -386,7 +386,7 @@
         <li>Aparece un <span class="hl">bloque coherente de desarrollo socioeconómico</span>: justo el tipo de estructura que el PCA resume.</li>
         <li>La correlación no se lee como causalidad, sino como <b>evidencia de redundancia</b>.</li>
       </ul>
-      <figure class="figpane" data-src="informe_final/figures/eda_correlacion_2023.html">
+      <figure class="figpane" data-src="figures/eda_correlacion_2023.html">
         <div class="loading"><span class="dot"></span> Cargando gráfico interactivo…</div>
         <figcaption class="figcap">Correlaciones de Pearson entre variables transformadas (2023).</figcaption>
       </figure>
@@ -404,7 +404,7 @@
         <li>Patrón <span class="hl">monótono por ingreso</span>: a mayor ingreso, mayor esperanza de vida y uso de Internet, y menor participación agrícola.</li>
         <li>Confirma que los indicadores numéricos capturan desarrollo sustantivo, no ruido técnico.</li>
       </ul>
-      <figure class="figpane" data-src="informe_final/figures/eda_boxplots_ingreso_2023.html">
+      <figure class="figpane" data-src="figures/eda_boxplots_ingreso_2023.html">
         <div class="loading"><span class="dot"></span> Cargando gráfico interactivo…</div>
         <figcaption class="figcap">Variables clave por nivel de ingreso oficial del Banco Mundial (2023).</figcaption>
       </figure>
@@ -422,7 +422,7 @@
         <li>Horn contrasta los autovalores contra matrices aleatorias: <span class="hl">controla la estructura por ruido</span> → criterio principal.</li>
         <li><b>3 componentes</b> retenidos = <b>64,9%</b> de varianza acumulada.</li>
       </ul>
-      <figure class="figpane" data-src="informe_final/figures/pca_scree_2023.html">
+      <figure class="figpane" data-src="figures/pca_scree_2023.html">
         <div class="loading"><span class="dot"></span> Cargando gráfico interactivo…</div>
         <figcaption class="figcap">Scree plot, umbral de Horn y varianza acumulada (2023).</figcaption>
       </figure>
@@ -445,7 +445,7 @@
         <li><b>PC2 (13,1%)</b> — <span class="hl">estructura productiva:</span> separa perfiles industriales de perfiles terciarizados.</li>
         <li><b>PC3 (10,5%)</b> — <span class="hl">apertura comercial y coyuntura macro:</span> comercio y crecimiento vs. inflación.</li>
       </ul>
-      <figure class="figpane" data-src="informe_final/figures/pca_loadings_barras_2023.html">
+      <figure class="figpane" data-src="figures/pca_loadings_barras_2023.html">
         <div class="loading"><span class="dot"></span> Cargando gráfico interactivo…</div>
         <figcaption class="figcap">Cargas de PC1, PC2 y PC3 (2023).</figcaption>
       </figure>
@@ -463,7 +463,7 @@
         <li>El PCA no "aprendió" la etiqueta: los indicadores numéricos contienen <span class="hl">estructura suficiente</span> para reconstruir diferencias de desarrollo.</li>
         <li>Valida la lectura de PC1 como gradiente de desarrollo.</li>
       </ul>
-      <figure class="figpane" data-src="informe_final/figures/pca_biplot_ingreso_2023.html">
+      <figure class="figpane" data-src="figures/pca_biplot_ingreso_2023.html">
         <div class="loading"><span class="dot"></span> Cargando gráfico interactivo…</div>
         <figcaption class="figcap">Biplot PC1–PC2 coloreado por nivel de ingreso (2023).</figcaption>
       </figure>
@@ -480,7 +480,7 @@
         <li style="margin:0">Gradiente <b>norte–sur</b>: Europa Occidental, Norteamérica, Australia y Japón con los scores más altos.</li>
         <li style="margin:0">África subsahariana y parte del sur de Asia, los más bajos; América Latina intermedia.</li>
       </ul>
-      <figure class="figpane" data-src="informe_final/figures/map_pc1_2023.html">
+      <figure class="figpane" data-src="figures/map_pc1_2023.html">
         <div class="loading"><span class="dot"></span> Cargando mapa interactivo…</div>
         <figcaption class="figcap">Score de PC1 por país (2023). <span class="hint">Hover para ver país y score exacto.</span></figcaption>
       </figure>
@@ -498,7 +498,7 @@
         <li><b>k-means + Ward.</b> El consenso favorece <span class="hl">k=2</span>: silhouette, Calinski-Harabasz, Davies-Bouldin y gap statistic.</li>
         <li>Estabilidad bootstrap alta: <b>Jaccard 0,96 y 0,94</b>.</li>
       </ul>
-      <figure class="figpane" data-src="informe_final/figures/clust_metricas_k_2023.html">
+      <figure class="figpane" data-src="figures/clust_metricas_k_2023.html">
         <div class="loading"><span class="dot"></span> Cargando gráfico interactivo…</div>
         <figcaption class="figcap">Criterios internos para elegir k (2023).</figcaption>
       </figure>
@@ -538,7 +538,7 @@
           </tbody>
         </table>
       </div>
-      <figure class="figpane" data-src="informe_final/figures/clust_pca_k2_2023.html">
+      <figure class="figpane" data-src="figures/clust_pca_k2_2023.html">
         <div class="loading"><span class="dot"></span> Cargando gráfico interactivo…</div>
         <figcaption class="figcap">Conglomerados k=2 proyectados sobre PC1–PC2 (2023).</figcaption>
       </figure>
@@ -556,7 +556,7 @@
         <li>El avance medio de PC1 está dominado por la <span class="hl">difusión global de Internet (47,4%)</span> y la esperanza de vida (22,2%); el PBI pc aporta solo 9,4%.</li>
         <li>Por eso se interpreta <b>posición relativa</b>, no coordenadas absolutas.</li>
       </ul>
-      <figure class="figpane" data-src="informe_final/figures/compare_descomposicion_dPC1.html">
+      <figure class="figpane" data-src="figures/compare_descomposicion_dPC1.html">
         <div class="loading"><span class="dot"></span> Cargando gráfico interactivo…</div>
         <figcaption class="figcap">Descomposición del corrimiento absoluto de PC1 (2005→2023).</figcaption>
       </figure>
@@ -574,7 +574,7 @@
         <li>Panel común de 183 países: <b>15 ascienden</b> de tier y <b>1 desciende</b>.</li>
         <li>Ascensos: <span class="hl">Georgia, China, Mongolia</span>. Descensos: <span class="hl">Venezuela, Líbano, Argentina</span>.</li>
       </ul>
-      <figure class="figpane" data-src="informe_final/figures/compare_trayectorias.html">
+      <figure class="figpane" data-src="figures/compare_trayectorias.html">
         <div class="loading"><span class="dot"></span> Cargando gráfico interactivo…</div>
         <figcaption class="figcap">Movilidad relativa de países entre 2005 y 2023.</figcaption>
       </figure>
@@ -641,7 +641,7 @@
         <li><b>Hennig (2007).</b> Cluster-wise assessment of cluster stability. <i>Comp. Stat. &amp; Data Analysis</i> 52(1), 258–271. <a href="https://doi.org/10.1016/j.csda.2006.11.025" target="_blank" rel="noopener">doi</a></li>
       </ol>
     </div>
-    <div class="slide-foot"><div class="bib">Informe completo en <b>informe_final/index.html</b> · Universidad Austral</div><div class="pageno"></div></div>
+    <div class="slide-foot"><div class="bib">Informe completo en <b>index.html</b> · Universidad Austral</div><div class="pageno"></div></div>
   </section>
 
 </div>
