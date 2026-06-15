@@ -119,6 +119,10 @@
     box-shadow:0 18px 40px -24px rgba(4,40,45,.55);
   }
   .figpane iframe{border:0; width:100%; flex:1 1 auto; min-height:0; display:block; background:#fff;}
+  /* wrapper for "tall" figures: render the plot at its native height (no label
+     overlap) and scale it down to fit, preserving aspect ratio */
+  .figframe{position:relative; flex:1 1 auto; min-height:0; overflow:hidden; background:#fff;}
+  .figframe iframe{position:absolute; top:0; left:0; flex:none; width:auto; transform-origin:top left; background:#fff;}
   .figpane .loading{
     position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
     color:var(--muted); font-size:.9rem; gap:10px; background:var(--pane);
@@ -363,7 +367,7 @@
         <li>Transformaciones variable por variable: <b>log</b> (PBI pc), <b>log1p</b> (CO₂ pc), <b>Yeo-Johnson</b> para colas con valores negativos como inflación.</li>
         <li>Primero se corrige la <span class="hl">forma</span>, luego se igualan las <span class="hl">escalas</span>.</li>
       </ul>
-      <figure class="figpane" data-src="figures/eda_histogramas_2023.html">
+      <figure class="figpane" data-src="figures/eda_histogramas_2023.html" data-tall="940">
         <div class="loading"><span class="dot"></span> Cargando gráfico interactivo…</div>
         <figcaption class="figcap">Distribuciones univariadas de los 14 indicadores (2023). <span class="hint">Hover / zoom dentro del gráfico.</span></figcaption>
       </figure>
@@ -404,7 +408,7 @@
         <li>Patrón <span class="hl">monótono por ingreso</span>: a mayor ingreso, mayor esperanza de vida y uso de Internet, y menor participación agrícola.</li>
         <li>Confirma que los indicadores numéricos capturan desarrollo sustantivo, no ruido técnico.</li>
       </ul>
-      <figure class="figpane" data-src="figures/eda_boxplots_ingreso_2023.html">
+      <figure class="figpane" data-src="figures/eda_boxplots_ingreso_2023.html" data-tall="720">
         <div class="loading"><span class="dot"></span> Cargando gráfico interactivo…</div>
         <figcaption class="figcap">Variables clave por nivel de ingreso oficial del Banco Mundial (2023).</figcaption>
       </figure>
@@ -445,7 +449,7 @@
         <li><b>PC2 (13,1%)</b> — <span class="hl">estructura productiva:</span> separa perfiles industriales de perfiles terciarizados.</li>
         <li><b>PC3 (10,5%)</b> — <span class="hl">apertura comercial y coyuntura macro:</span> comercio y crecimiento vs. inflación.</li>
       </ul>
-      <figure class="figpane" data-src="figures/pca_loadings_barras_2023.html">
+      <figure class="figpane" data-src="figures/pca_loadings_barras_2023.html" data-tall="620">
         <div class="loading"><span class="dot"></span> Cargando gráfico interactivo…</div>
         <figcaption class="figcap">Cargas de PC1, PC2 y PC3 (2023).</figcaption>
       </figure>
@@ -498,7 +502,7 @@
         <li><b>k-means + Ward.</b> El consenso favorece <span class="hl">k=2</span>: silhouette, Calinski-Harabasz, Davies-Bouldin y gap statistic.</li>
         <li>Estabilidad bootstrap alta: <b>Jaccard 0,96 y 0,94</b>.</li>
       </ul>
-      <figure class="figpane" data-src="figures/clust_metricas_k_2023.html">
+      <figure class="figpane" data-src="figures/clust_metricas_k_2023.html" data-tall="720">
         <div class="loading"><span class="dot"></span> Cargando gráfico interactivo…</div>
         <figcaption class="figcap">Criterios internos para elegir k (2023).</figcaption>
       </figure>
@@ -725,18 +729,56 @@
   function fitFrame(f){
     let t=0; (function go(){ if(fillPlot(f)) return; if(t++<60) setTimeout(go,150); })();
   }
+  // A "tall" figure (e.g. 14-histogram grid) overlaps its labels when squashed
+  // into the pane. Instead, render it at its native height and scale it to fit.
+  function fillTall(pane){
+    const wrap = pane.querySelector('.figframe');
+    if(!wrap) return false;
+    const f = wrap.querySelector('iframe');
+    if(!f) return false;
+    const nativeH = parseInt(pane.dataset.tall,10) || 700;
+    const availW = wrap.clientWidth, availH = wrap.clientHeight;
+    if(!availW || !availH) return false;
+    try{
+      const w=f.contentWindow, d=f.contentDocument;
+      if(!w || !d || !w.Plotly) return false;
+      const div=d.querySelector('.plotly-graph-div');
+      if(!div) return false;
+      const scale = availH / nativeH;
+      const logicalW = Math.round(availW / scale);
+      d.documentElement.style.height='100%';
+      d.body.style.margin='0'; d.body.style.overflow='hidden';
+      div.style.width = logicalW+'px'; div.style.height = nativeH+'px';
+      w.Plotly.Plots.resize(div);
+      f.style.width = logicalW+'px'; f.style.height = nativeH+'px';
+      f.style.transform = 'scale('+scale+')';
+      return true;
+    }catch(e){ return false; }
+  }
+  function fitFrameTall(pane){
+    let t=0; (function go(){ if(fillTall(pane)) return; if(t++<60) setTimeout(go,150); })();
+  }
   function loadFigures(s, resize){
     s.querySelectorAll('.figpane[data-src]').forEach(pane=>{
+      const tall = pane.hasAttribute('data-tall');
       let f = pane.querySelector('iframe');
       if(!f){
         f = document.createElement('iframe');
         f.title = 'Gráfico interactivo';
         f.src = pane.dataset.src;
         const cap = pane.querySelector('.figcap');
-        pane.insertBefore(f, cap || null);
         const ld = pane.querySelector('.loading');
-        f.addEventListener('load', ()=>{ if(ld) ld.style.display='none'; fitFrame(f); });
-      } else if(resize){ fitFrame(f); }
+        if(tall){
+          const wrap = document.createElement('div');
+          wrap.className = 'figframe';
+          wrap.appendChild(f);
+          pane.insertBefore(wrap, cap || null);
+          f.addEventListener('load', ()=>{ if(ld) ld.style.display='none'; fitFrameTall(pane); });
+        } else {
+          pane.insertBefore(f, cap || null);
+          f.addEventListener('load', ()=>{ if(ld) ld.style.display='none'; fitFrame(f); });
+        }
+      } else if(resize){ tall ? fitFrameTall(pane) : fitFrame(f); }
     });
   }
 
