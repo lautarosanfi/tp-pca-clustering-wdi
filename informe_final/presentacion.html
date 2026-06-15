@@ -1,0 +1,806 @@
+<!doctype html>
+<html lang="es-AR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Presentación · PCA y clustering de indicadores de desarrollo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#16292f; --ink-soft:#33474e; --muted:#5f747b; --line:#e4edee; --paper:#ffffff;
+    --teal:#0a7d89; --teal-deep:#055762; --aqua:#54c3bb; --coral:#ef8a68; --gold:#f0c453;
+    --bg1:#0b3a40; --bg2:#04161a;
+    --radius:20px; --pane:#f4fafa;
+    --grad-teal:linear-gradient(135deg,#0a7d89 0%,#54c3bb 100%);
+    --grad-warm:linear-gradient(135deg,#ef8a68 0%,#f0c453 100%);
+    --grad-rail:linear-gradient(180deg,#54c3bb 0%,#0a7d89 48%,#ef8a68 100%);
+    --shadow-slide:0 50px 100px -30px rgba(0,18,22,.65), 0 12px 36px -14px rgba(0,18,22,.45);
+    --ease:cubic-bezier(.22,.72,.16,1);
+    --font-head:"Space Grotesk","Segoe UI",system-ui,sans-serif;
+    --font-body:"Inter","Segoe UI",system-ui,-apple-system,Roboto,Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0; font-family:var(--font-body); color:var(--ink);
+    background:#04161a; overflow:hidden;
+    -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;
+  }
+
+  /* ---------- deck / stage (fixed 1280x720, scaled to fit) ---------- */
+  .deck{
+    position:fixed; inset:0; display:flex; align-items:center; justify-content:center; overflow:hidden;
+    padding-bottom:74px;
+    background:
+      radial-gradient(1100px 720px at 80% -12%, #15616b 0%, rgba(11,58,64,0) 58%),
+      radial-gradient(900px 700px at 8% 112%, #0c4d56 0%, rgba(6,38,43,0) 55%),
+      linear-gradient(158deg,#0b3a40 0%,#062023 60%,#04161a 100%);
+  }
+  .deck::before,.deck::after{
+    content:""; position:absolute; border-radius:50%; filter:blur(80px); pointer-events:none; z-index:0;
+  }
+  .deck::before{
+    width:560px;height:560px; top:-180px; right:-110px; opacity:.5;
+    background:radial-gradient(circle,#19a89c 0%,rgba(25,168,156,0) 70%);
+    animation:float1 20s ease-in-out infinite;
+  }
+  .deck::after{
+    width:520px;height:520px; bottom:-200px; left:-130px; opacity:.34;
+    background:radial-gradient(circle,#ef8a68 0%,rgba(239,138,104,0) 70%);
+    animation:float2 26s ease-in-out infinite;
+  }
+  @keyframes float1{0%,100%{transform:translate(0,0)}50%{transform:translate(-50px,40px)}}
+  @keyframes float2{0%,100%{transform:translate(0,0)}50%{transform:translate(60px,-40px)}}
+
+  .stage{
+    position:relative; width:1280px; height:720px; flex:0 0 auto; z-index:1;
+    transform-origin:center center;
+  }
+  .slide{
+    position:absolute; inset:0;
+    background:radial-gradient(130% 90% at 100% 0%, #fbfdfd 0%, #ffffff 55%);
+    border-radius:var(--radius);
+    box-shadow:var(--shadow-slide);
+    padding:42px 56px 24px; display:flex; flex-direction:column;
+    opacity:0; transform:translateY(22px) scale(.984); pointer-events:none;
+    transition:opacity .45s var(--ease), transform .45s var(--ease);
+    overflow:hidden;
+  }
+  .slide.active{opacity:1; transform:none; pointer-events:auto;}
+
+  /* accent rail */
+  .slide::before{
+    content:""; position:absolute; left:0; top:0; bottom:0; width:10px;
+    background:var(--grad-rail);
+  }
+  /* faint corner glow */
+  .slide::after{
+    content:""; position:absolute; right:-120px; top:-120px; width:320px; height:320px; border-radius:50%;
+    background:radial-gradient(circle,rgba(84,195,187,.16) 0%,rgba(84,195,187,0) 70%); pointer-events:none;
+  }
+
+  .kicker{
+    display:inline-flex; align-items:center; gap:10px; align-self:flex-start;
+    font-family:var(--font-head); font-size:.72rem; letter-spacing:.2em; text-transform:uppercase;
+    color:var(--teal); font-weight:600; margin:0 0 11px;
+  }
+  .kicker::before{content:""; width:28px; height:2px; border-radius:2px; background:var(--grad-teal);}
+  h2.title{
+    font-family:var(--font-head); font-size:2.15rem; line-height:1.08; margin:0 0 18px; font-weight:700;
+    letter-spacing:-.015em; color:#10262d;
+  }
+  .slide-body{flex:1; min-height:0; display:grid; gap:26px;}
+  .slide-body.split{grid-template-columns:0.74fr 1.62fr; align-items:stretch;}
+  .slide-body.stack{grid-template-rows:auto 1fr;}
+  .slide-body.solo{grid-template-columns:1fr; align-content:center;}
+
+  .points{margin:0; padding:0; list-style:none; align-self:center;}
+  .points li{
+    position:relative; padding:0 0 0 30px; margin:0 0 16px; font-size:1.02rem; line-height:1.5; color:var(--ink-soft);
+  }
+  .points li:last-child{margin-bottom:0;}
+  .points li::before{
+    content:""; position:absolute; left:1px; top:.62em; width:8px; height:8px; border-radius:2px;
+    background:var(--grad-teal); transform:translateY(-50%) rotate(45deg);
+  }
+  .points li b,.points li strong{color:#13303a; font-weight:700;}
+  .points li .hl{
+    color:var(--teal-deep); font-weight:700;
+    background:linear-gradient(transparent 62%, rgba(84,195,187,.28) 0);
+    padding:0 1px;
+  }
+
+  /* figure pane */
+  .figpane{
+    background:var(--pane); border:1px solid var(--line); border-radius:14px;
+    overflow:hidden; display:flex; flex-direction:column; min-height:0; position:relative;
+    box-shadow:0 18px 40px -24px rgba(4,40,45,.55);
+  }
+  .figpane iframe{border:0; width:100%; flex:1 1 auto; min-height:0; display:block; background:#fff;}
+  .figpane .loading{
+    position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    color:var(--muted); font-size:.9rem; gap:10px; background:var(--pane);
+  }
+  .figpane .loading .dot{width:10px;height:10px;border-radius:50%;background:var(--aqua);animation:pulse 1s infinite ease-in-out}
+  @keyframes pulse{0%,100%{opacity:.3;transform:scale(.8)}50%{opacity:1;transform:scale(1)}}
+  .figcap{font-size:.78rem; color:var(--muted); padding:9px 14px; border-top:1px solid var(--line); background:#fff;}
+  .hint{font-size:.72rem;color:var(--teal);font-weight:600}
+
+  /* footer with per-slide bibliography */
+  .slide-foot{
+    margin-top:16px; padding-top:11px; border-top:1px solid var(--line);
+    display:flex; align-items:flex-end; justify-content:space-between; gap:18px;
+  }
+  .bib{font-size:.72rem; color:var(--muted); line-height:1.45; max-width:84%;}
+  .bib .bt{font-weight:700; color:var(--teal); text-transform:uppercase; letter-spacing:.1em; font-size:.64rem; display:block; margin-bottom:3px;}
+  .bib span.r{display:inline-block; margin-right:14px;}
+  .bib span.r b{color:#3a4a51;}
+  .pageno{
+    font-family:var(--font-head); font-size:.72rem; color:var(--teal-deep); white-space:nowrap; font-weight:600;
+    background:#edf6f9; border:1px solid #d3e6ea; padding:4px 13px; border-radius:999px;
+  }
+
+  /* chips / stats */
+  .chips{display:flex; flex-wrap:wrap; gap:11px; margin-top:14px;}
+  .chip{
+    align-self:center;
+    background:#fff; border:1px solid #d7e7ea; border-radius:999px; padding:8px 16px; font-size:.86rem; color:#1c4a50;
+    box-shadow:0 3px 10px -4px rgba(10,80,90,.18); transition:transform .16s var(--ease), box-shadow .16s var(--ease);
+  }
+  .chip:hover{transform:translateY(-3px); box-shadow:0 10px 20px -8px rgba(10,80,90,.3);}
+  .chip b{color:var(--teal);}
+
+  /* ---------- cover ---------- */
+  .slide.cover{
+    justify-content:center; padding:60px 70px; color:#eafcfb; overflow:hidden;
+    background:
+      radial-gradient(900px 620px at 82% -12%, #176a74 0%, rgba(11,58,64,0) 60%),
+      radial-gradient(700px 600px at 5% 110%, #0c545d 0%, rgba(6,38,43,0) 60%),
+      linear-gradient(155deg,#0c424a 0%,#06272c 55%,#041c20 100%);
+  }
+  .slide.cover::before{width:10px; background:var(--grad-rail);}
+  .slide.cover::after{
+    right:-160px; top:-160px; width:480px; height:480px;
+    background:radial-gradient(circle,rgba(239,138,104,.22) 0%,rgba(239,138,104,0) 70%);
+  }
+  .cover .eyebrow{
+    display:inline-flex; align-items:center; gap:11px;
+    color:var(--aqua); font-family:var(--font-head); font-weight:600; letter-spacing:.16em; text-transform:uppercase; font-size:.82rem; margin:0 0 22px;
+  }
+  .cover .eyebrow::before{content:""; width:34px; height:2px; border-radius:2px; background:var(--grad-warm);}
+  .cover h1{
+    font-family:var(--font-head); font-size:3.3rem; line-height:1.04; margin:0 0 18px; color:#fff; font-weight:700;
+    letter-spacing:-.025em; max-width:19ch;
+  }
+  .cover h1 .grad{
+    background:var(--grad-warm); -webkit-background-clip:text; background-clip:text; color:transparent;
+  }
+  .cover .sub{font-size:1.2rem; color:#bfe2e0; margin:0 0 32px; max-width:58ch; line-height:1.45;}
+  .meta{display:flex; flex-wrap:wrap; gap:16px 44px; margin-bottom:34px;}
+  .meta div{min-width:160px;}
+  .meta dt{font-family:var(--font-head); font-size:.68rem; text-transform:uppercase; letter-spacing:.14em; color:#7fb9b5; margin-bottom:5px;}
+  .meta dd{margin:0; font-size:.98rem; color:#e7f6f5; font-weight:500;}
+  .metricstrip{display:flex; gap:16px; flex-wrap:wrap;}
+  .metricstrip article{
+    position:relative; background:rgba(255,255,255,.055); border:1px solid rgba(255,255,255,.14);
+    border-radius:16px; padding:16px 22px 15px; min-width:112px; overflow:hidden;
+    backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px);
+  }
+  .metricstrip article::before{content:""; position:absolute; left:0; top:0; right:0; height:3px; background:var(--grad-teal);}
+  .metricstrip strong{display:block; font-family:var(--font-head); font-size:2.05rem; line-height:1; color:#fff; font-weight:700; font-variant-numeric:tabular-nums;}
+  .metricstrip span{font-size:.76rem; color:#a9d9d5; letter-spacing:.01em;}
+
+  /* ---------- table slide ---------- */
+  table.mini{width:100%; border-collapse:collapse; font-size:.92rem; align-self:center;}
+  table.mini caption{font-family:var(--font-head); text-align:left; font-size:.78rem; color:var(--muted); margin-bottom:9px; font-weight:500;}
+  table.mini th,table.mini td{padding:9px 13px; border-bottom:1px solid var(--line); text-align:left;}
+  table.mini thead th{background:#edf6f9; color:#1c4a50; font-size:.74rem; text-transform:uppercase; letter-spacing:.05em; font-weight:700;}
+  table.mini thead th:first-child{border-top-left-radius:9px;}
+  table.mini thead th:last-child{border-top-right-radius:9px;}
+  table.mini tbody tr{transition:background .15s;}
+  table.mini tbody tr:hover{background:#f6fbfb;}
+  table.mini td.num{text-align:right; font-variant-numeric:tabular-nums;}
+  table.mini tr.warn td{background:#fff3ee;}
+  table.mini tr.warn:hover td{background:#ffece4;}
+  table.mini tr.warn td:first-child{color:#bb4d2e; font-weight:600;}
+
+  /* references slide list */
+  ol.refs{margin:0; padding-left:22px; columns:2; column-gap:44px; font-size:.82rem; line-height:1.5; color:#3a4a51;}
+  ol.refs li{margin-bottom:11px; break-inside:avoid; padding-left:4px;}
+  ol.refs li::marker{color:var(--teal); font-weight:700;}
+  ol.refs b{color:var(--teal);}
+  ol.refs a{color:#0a6b74; text-decoration:none; border-bottom:1px solid rgba(10,107,116,.3);}
+  ol.refs a:hover{border-bottom-color:#0a6b74;}
+
+  /* two-figure grid inside a pane row */
+  .twofig{display:grid; grid-template-columns:1fr 1fr; gap:18px; min-height:0;}
+
+  /* ---------- entrance animations ---------- */
+  @keyframes rise{from{opacity:0; transform:translateY(22px)} to{opacity:1; transform:none}}
+  @keyframes pop{from{opacity:0; transform:scale(.965)} to{opacity:1; transform:none}}
+  .slide.active .kicker{animation:rise .5s .04s both var(--ease);}
+  .slide.active h2.title{animation:rise .55s .1s both var(--ease);}
+  .slide.active .points li{animation:rise .5s both var(--ease);}
+  .slide.active .points li:nth-child(1){animation-delay:.18s}
+  .slide.active .points li:nth-child(2){animation-delay:.26s}
+  .slide.active .points li:nth-child(3){animation-delay:.34s}
+  .slide.active .points li:nth-child(4){animation-delay:.42s}
+  .slide.active .points li:nth-child(5){animation-delay:.5s}
+  .slide.active .chips{animation:rise .5s .46s both var(--ease);}
+  .slide.active .figpane{animation:pop .6s .22s both var(--ease);}
+  .slide.active table.mini{animation:rise .55s .3s both var(--ease);}
+  .slide.active .slide-foot{animation:rise .5s .5s both var(--ease);}
+  /* cover */
+  .slide.cover.active .eyebrow{animation:rise .6s .08s both var(--ease);}
+  .slide.cover.active h1{animation:rise .7s .18s both var(--ease);}
+  .slide.cover.active .sub{animation:rise .6s .32s both var(--ease);}
+  .slide.cover.active .meta{animation:rise .6s .44s both var(--ease);}
+  .slide.cover.active .metricstrip article{animation:rise .55s both var(--ease);}
+  .slide.cover.active .metricstrip article:nth-child(1){animation-delay:.54s}
+  .slide.cover.active .metricstrip article:nth-child(2){animation-delay:.62s}
+  .slide.cover.active .metricstrip article:nth-child(3){animation-delay:.7s}
+  .slide.cover.active .metricstrip article:nth-child(4){animation-delay:.78s}
+  .slide.cover.active .metricstrip article:nth-child(5){animation-delay:.86s}
+
+  /* ---------- controls ---------- */
+  .controls{
+    position:fixed; bottom:18px; left:50%; transform:translateX(-50%);
+    display:flex; align-items:center; gap:8px; z-index:30;
+    background:rgba(8,40,45,.66); backdrop-filter:blur(16px) saturate(140%); -webkit-backdrop-filter:blur(16px) saturate(140%);
+    padding:8px 12px; border-radius:999px; border:1px solid rgba(255,255,255,.14);
+    box-shadow:0 14px 40px -12px rgba(0,0,0,.5);
+  }
+  .controls button{
+    border:0; background:rgba(255,255,255,.12); color:#eafcfb; width:40px; height:40px; border-radius:50%;
+    font-size:1.25rem; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:background .16s, transform .16s;
+  }
+  .controls button:hover{background:var(--grad-teal); transform:translateY(-2px);}
+  .controls button:active{transform:translateY(0);}
+  .controls button:disabled{opacity:.32; cursor:default; transform:none; background:rgba(255,255,255,.12);}
+  .counter{color:#dff3f1; font-size:.9rem; min-width:66px; text-align:center; font-variant-numeric:tabular-nums; font-family:var(--font-head);}
+  .counter b{color:#fff; font-size:1.05rem;}
+  .progress{position:fixed; top:0; left:0; height:4px; background:var(--grad-warm); width:0; z-index:31; transition:width .4s var(--ease); box-shadow:0 0 14px rgba(240,196,83,.55);}
+  .menu-btn{position:fixed; top:14px; right:16px; z-index:30;}
+
+  /* slide-jump overview */
+  .overview{
+    position:fixed; inset:0; background:rgba(5,22,26,.95); backdrop-filter:blur(10px); z-index:40; display:none;
+    padding:50px 56px; overflow:auto;
+  }
+  .overview.open{display:block;}
+  .overview h3{font-family:var(--font-head); color:#eafcfb; margin:0 0 26px; font-weight:600; font-size:1.3rem;}
+  .ovgrid{display:grid; grid-template-columns:repeat(auto-fill,minmax(230px,1fr)); gap:15px;}
+  .ovcard{
+    background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.13); border-radius:13px; padding:16px 18px;
+    color:#dff3f1; cursor:pointer; transition:background .18s, transform .18s, border-color .18s; position:relative; overflow:hidden;
+  }
+  .ovcard::before{content:""; position:absolute; left:0; top:0; bottom:0; width:3px; background:var(--grad-teal); opacity:.6; transition:opacity .18s;}
+  .ovcard:hover{background:rgba(10,125,137,.5); transform:translateY(-4px); border-color:rgba(84,195,187,.5);}
+  .ovcard:hover::before{opacity:1;}
+  .ovcard .n{font-family:var(--font-head); font-size:.72rem; color:var(--aqua); font-weight:700; letter-spacing:.05em;}
+  .ovcard .t{font-size:.95rem; margin-top:5px; line-height:1.28;}
+
+  .kbd{font-size:.7rem;color:#9aa7ad}
+
+  @media (prefers-reduced-motion: reduce){
+    *{animation:none !important; transition:none !important;}
+  }
+</style>
+</head>
+<body>
+<div class="progress" id="bar"></div>
+
+<div class="deck" id="deck">
+<div class="stage" id="stage">
+
+  <!-- 0 · PORTADA -->
+  <section class="slide cover active">
+    <p class="eyebrow">Universidad Austral · Licenciatura en Ciencia de Datos</p>
+    <h1>Patrones de <span class="grad">desarrollo</span> de los países</h1>
+    <p class="sub">Análisis de Componentes Principales y Análisis de Conglomerados sobre indicadores del Banco Mundial</p>
+    <dl class="meta">
+      <div><dt>Materia</dt><dd>Análisis Multivariado y Descubrimiento de Patrones</dd></div>
+      <div><dt>Integrantes</dt><dd>B. Miles Roullion · B. Di Rienzo · L. Sanfilippo</dd></div>
+      <div><dt>Fecha</dt><dd>9 de junio de 2026</dd></div>
+      <div><dt>Fuente</dt><dd>World Development Indicators (Banco Mundial)</dd></div>
+    </dl>
+    <div class="metricstrip">
+      <article><strong data-count="191">191</strong><span>países (2023)</span></article>
+      <article><strong data-count="14">14</strong><span>indicadores</span></article>
+      <article><strong data-count="3">3</strong><span>componentes</span></article>
+      <article><strong data-count="2">2</strong><span>conglomerados</span></article>
+      <article><strong data-count="183">183</strong><span>panel común</span></article>
+    </div>
+  </section>
+
+  <!-- 1 · PREGUNTA -->
+  <section class="slide">
+    <p class="kicker">Introducción</p>
+    <h2 class="title">Una pregunta multivariada</h2>
+    <div class="slide-body solo">
+      <ul class="points">
+        <li>El desarrollo <b>no se reduce a una variable</b>: importan ingreso, salud, estructura productiva, urbanización, conectividad y coyuntura macroeconómica.</li>
+        <li><span class="hl">Pregunta guía:</span> ¿cuántas dimensiones latentes describen el desarrollo y qué conglomerados emergen al comparar perfiles completos?</li>
+        <li>Dos técnicas complementarias: <b>PCA</b> para sintetizar e interpretar; <b>clustering</b> para explorar grupos sin etiqueta previa.</li>
+        <li><b>Hipótesis:</b> una dimensión dominante de desarrollo, pero que no agota el problema.</li>
+      </ul>
+    </div>
+    <div class="slide-foot"><div class="bib"></div><div class="pageno"></div></div>
+  </section>
+
+  <!-- 2 · DATOS -->
+  <section class="slide">
+    <p class="kicker">Desarrollo</p>
+    <h2 class="title">Datos y decisiones de construcción</h2>
+    <div class="slide-body solo">
+      <ul class="points">
+        <li><b>Unidad:</b> el país (código ISO-3). Se excluyen agregados regionales, grupos de ingreso y el total mundial.</li>
+        <li><b>Corte principal 2023:</b> evita años atípicos — 2021 (rebote pospandemia) y 2022 (shock inflacionario y guerra en Ucrania).</li>
+        <li><b>Año temprano 2005:</b> primer corte desde 2000 con cobertura suficiente en todas las variables.</li>
+        <li><b>14 indicadores numéricos.</b> Se descartan Gini, gasto en educación e INB PPA por baja cobertura o redundancia con el PBI.</li>
+      </ul>
+      <div class="chips">
+        <span class="chip"><b>Ingreso:</b> PBI per cápita real</span>
+        <span class="chip"><b>Macro:</b> crecimiento, inflación, desempleo</span>
+        <span class="chip"><b>Comercio:</b> capital, export, import</span>
+        <span class="chip"><b>Estructura:</b> agro, industria, servicios</span>
+        <span class="chip"><b>Social:</b> urbanización, vida, Internet</span>
+        <span class="chip"><b>Ambiente:</b> CO₂ per cápita</span>
+      </div>
+    </div>
+    <div class="slide-foot"><div class="bib"></div><div class="pageno"></div></div>
+  </section>
+
+  <!-- 3 · PREPROCESAMIENTO -->
+  <section class="slide">
+    <p class="kicker">Preprocesamiento</p>
+    <h2 class="title">Faltantes, transformaciones y estandarización</h2>
+    <div class="slide-body split">
+      <ul class="points">
+        <li>Faltantes <b>&lt;15%</b> (2005) y <b>&lt;12%</b> (2023): imputación por <b>KNN</b> sobre variables ya estandarizadas, cada año por separado.</li>
+        <li>Transformaciones variable por variable: <b>log</b> (PBI pc), <b>log1p</b> (CO₂ pc), <b>Yeo-Johnson</b> para colas con valores negativos como inflación.</li>
+        <li>Primero se corrige la <span class="hl">forma</span>, luego se igualan las <span class="hl">escalas</span>.</li>
+      </ul>
+      <figure class="figpane" data-src="informe_final/figures/eda_histogramas_2023.html">
+        <div class="loading"><span class="dot"></span> Cargando gráfico interactivo…</div>
+        <figcaption class="figcap">Distribuciones univariadas de los 14 indicadores (2023). <span class="hint">Hover / zoom dentro del gráfico.</span></figcaption>
+      </figure>
+    </div>
+    <div class="slide-foot">
+      <div class="bib"><span class="bt">Bibliografía</span>
+        <span class="r"><b>[1]</b> Yeo &amp; Johnson (2000). <i>A new family of power transformations…</i> Biometrika 87(4).</span>
+      </div>
+      <div class="pageno"></div>
+    </div>
+  </section>
+
+  <!-- 4 · EDA BIVARIADO -->
+  <section class="slide">
+    <p class="kicker">Análisis bivariado</p>
+    <h2 class="title">Redundancia multivariada</h2>
+    <div class="slide-body split">
+      <ul class="points">
+        <li>PBI pc, esperanza de vida, Internet, urbanización y CO₂ <b>se mueven juntos</b>; la agricultura se mueve en sentido contrario.</li>
+        <li>Aparece un <span class="hl">bloque coherente de desarrollo socioeconómico</span>: justo el tipo de estructura que el PCA resume.</li>
+        <li>La correlación no se lee como causalidad, sino como <b>evidencia de redundancia</b>.</li>
+      </ul>
+      <figure class="figpane" data-src="informe_final/figures/eda_correlacion_2023.html">
+        <div class="loading"><span class="dot"></span> Cargando gráfico interactivo…</div>
+        <figcaption class="figcap">Correlaciones de Pearson entre variables transformadas (2023).</figcaption>
+      </figure>
+    </div>
+    <div class="slide-foot"><div class="bib"></div><div class="pageno"></div></div>
+  </section>
+
+  <!-- 5 · EDA CATEGÓRICAS -->
+  <section class="slide">
+    <p class="kicker">Validación externa</p>
+    <h2 class="title">Variables suplementarias</h2>
+    <div class="slide-body split">
+      <ul class="points">
+        <li>Región e ingreso <b>no entran al modelo</b> (las dummies distorsionarían las distancias): se usan solo para interpretar y validar.</li>
+        <li>Patrón <span class="hl">monótono por ingreso</span>: a mayor ingreso, mayor esperanza de vida y uso de Internet, y menor participación agrícola.</li>
+        <li>Confirma que los indicadores numéricos capturan desarrollo sustantivo, no ruido técnico.</li>
+      </ul>
+      <figure class="figpane" data-src="informe_final/figures/eda_boxplots_ingreso_2023.html">
+        <div class="loading"><span class="dot"></span> Cargando gráfico interactivo…</div>
+        <figcaption class="figcap">Variables clave por nivel de ingreso oficial del Banco Mundial (2023).</figcaption>
+      </figure>
+    </div>
+    <div class="slide-foot"><div class="bib"></div><div class="pageno"></div></div>
+  </section>
+
+  <!-- 6 · PCA RETENCIÓN -->
+  <section class="slide">
+    <p class="kicker">Técnica 1 · PCA</p>
+    <h2 class="title">¿Cuántos componentes retener?</h2>
+    <div class="slide-body split">
+      <ul class="points">
+        <li>Tres criterios: <b>Kaiser</b> → 4, <b>80% de varianza</b> → 6, <b>análisis paralelo de Horn</b> → 3.</li>
+        <li>Horn contrasta los autovalores contra matrices aleatorias: <span class="hl">controla la estructura por ruido</span> → criterio principal.</li>
+        <li><b>3 componentes</b> retenidos = <b>64,9%</b> de varianza acumulada.</li>
+      </ul>
+      <figure class="figpane" data-src="informe_final/figures/pca_scree_2023.html">
+        <div class="loading"><span class="dot"></span> Cargando gráfico interactivo…</div>
+        <figcaption class="figcap">Scree plot, umbral de Horn y varianza acumulada (2023).</figcaption>
+      </figure>
+    </div>
+    <div class="slide-foot">
+      <div class="bib"><span class="bt">Bibliografía</span>
+        <span class="r"><b>[2]</b> Horn (1965). <i>A rationale and test for the number of factors…</i> Psychometrika 30(2).</span>
+      </div>
+      <div class="pageno"></div>
+    </div>
+  </section>
+
+  <!-- 7 · PCA INTERPRETACIÓN -->
+  <section class="slide">
+    <p class="kicker">Técnica 1 · PCA</p>
+    <h2 class="title">Tres dimensiones del desarrollo</h2>
+    <div class="slide-body split">
+      <ul class="points">
+        <li><b>PC1 (41,3%)</b> — <span class="hl">gradiente de desarrollo:</span> PBI pc, Internet, esperanza de vida y urbanización frente a menor peso agrícola.</li>
+        <li><b>PC2 (13,1%)</b> — <span class="hl">estructura productiva:</span> separa perfiles industriales de perfiles terciarizados.</li>
+        <li><b>PC3 (10,5%)</b> — <span class="hl">apertura comercial y coyuntura macro:</span> comercio y crecimiento vs. inflación.</li>
+      </ul>
+      <figure class="figpane" data-src="informe_final/figures/pca_loadings_barras_2023.html">
+        <div class="loading"><span class="dot"></span> Cargando gráfico interactivo…</div>
+        <figcaption class="figcap">Cargas de PC1, PC2 y PC3 (2023).</figcaption>
+      </figure>
+    </div>
+    <div class="slide-foot"><div class="bib"></div><div class="pageno"></div></div>
+  </section>
+
+  <!-- 8 · PCA BIPLOT -->
+  <section class="slide">
+    <p class="kicker">Técnica 1 · PCA</p>
+    <h2 class="title">El ingreso se ordena sobre PC1</h2>
+    <div class="slide-body split">
+      <ul class="points">
+        <li>El nivel de ingreso oficial <b>no se usó</b> en el ajuste, pero se ordena de forma coherente a lo largo del PC1.</li>
+        <li>El PCA no "aprendió" la etiqueta: los indicadores numéricos contienen <span class="hl">estructura suficiente</span> para reconstruir diferencias de desarrollo.</li>
+        <li>Valida la lectura de PC1 como gradiente de desarrollo.</li>
+      </ul>
+      <figure class="figpane" data-src="informe_final/figures/pca_biplot_ingreso_2023.html">
+        <div class="loading"><span class="dot"></span> Cargando gráfico interactivo…</div>
+        <figcaption class="figcap">Biplot PC1–PC2 coloreado por nivel de ingreso (2023).</figcaption>
+      </figure>
+    </div>
+    <div class="slide-foot"><div class="bib"></div><div class="pageno"></div></div>
+  </section>
+
+  <!-- 9 · MAPA -->
+  <section class="slide">
+    <p class="kicker">Técnica 1 · PCA</p>
+    <h2 class="title">Distribución geográfica del PC1</h2>
+    <div class="slide-body stack">
+      <ul class="points" style="display:flex;gap:30px;flex-wrap:wrap">
+        <li style="margin:0">Gradiente <b>norte–sur</b>: Europa Occidental, Norteamérica, Australia y Japón con los scores más altos.</li>
+        <li style="margin:0">África subsahariana y parte del sur de Asia, los más bajos; América Latina intermedia.</li>
+      </ul>
+      <figure class="figpane" data-src="informe_final/figures/map_pc1_2023.html">
+        <div class="loading"><span class="dot"></span> Cargando mapa interactivo…</div>
+        <figcaption class="figcap">Score de PC1 por país (2023). <span class="hint">Hover para ver país y score exacto.</span></figcaption>
+      </figure>
+    </div>
+    <div class="slide-foot"><div class="bib"></div><div class="pageno"></div></div>
+  </section>
+
+  <!-- 10 · CLUSTERING SELECCIÓN K -->
+  <section class="slide">
+    <p class="kicker">Técnica 2 · Clustering</p>
+    <h2 class="title">Algoritmos y número de grupos</h2>
+    <div class="slide-body split">
+      <ul class="points">
+        <li>Se clusteriza sobre las <b>14 variables</b> (no sobre los PCs); verificado que para k=2 da el mismo resultado que sobre PCs (<b>ARI=1,000</b>).</li>
+        <li><b>k-means + Ward.</b> El consenso favorece <span class="hl">k=2</span>: silhouette, Calinski-Harabasz, Davies-Bouldin y gap statistic.</li>
+        <li>Estabilidad bootstrap alta: <b>Jaccard 0,96 y 0,94</b>.</li>
+      </ul>
+      <figure class="figpane" data-src="informe_final/figures/clust_metricas_k_2023.html">
+        <div class="loading"><span class="dot"></span> Cargando gráfico interactivo…</div>
+        <figcaption class="figcap">Criterios internos para elegir k (2023).</figcaption>
+      </figure>
+    </div>
+    <div class="slide-foot">
+      <div class="bib"><span class="bt">Bibliografía</span>
+        <span class="r"><b>[3]</b> Hubert &amp; Arabie (1985), ARI.</span>
+        <span class="r"><b>[4]</b> Rousseeuw (1987), silhouette.</span>
+        <span class="r"><b>[5]</b> Caliński &amp; Harabasz (1974).</span>
+        <span class="r"><b>[6]</b> Davies &amp; Bouldin (1979).</span>
+        <span class="r"><b>[7]</b> Tibshirani et al. (2001), gap.</span>
+        <span class="r"><b>[8]</b> Hennig (2007), bootstrap.</span>
+      </div>
+      <div class="pageno"></div>
+    </div>
+  </section>
+
+  <!-- 11 · CLUSTERING PERFIL -->
+  <section class="slide">
+    <p class="kicker">Técnica 2 · Clustering</p>
+    <h2 class="title">Dos perfiles de desarrollo</h2>
+    <div class="slide-body split">
+      <div style="align-self:center">
+        <ul class="points">
+          <li><b>70</b> países en vías de desarrollo · <b>121</b> desarrollados.</li>
+          <li>Asociación muy fuerte con el ingreso oficial: <b>χ² = 135,8</b>, p ≈ 2,2·10⁻²⁸.</li>
+          <li>Silueta <b>0,277</b>: el desarrollo es un <span class="hl">continuo con cortes útiles</span>, no bloques cerrados.</li>
+        </ul>
+        <table class="mini" style="margin-top:16px">
+          <caption>Medianas por conglomerado (2023)</caption>
+          <thead><tr><th>Indicador</th><th class="num">En desarrollo</th><th class="num">Desarrollados</th></tr></thead>
+          <tbody>
+            <tr><td>PBI per cápita (US$)</td><td class="num">1.439</td><td class="num">14.933</td></tr>
+            <tr><td>Esperanza de vida</td><td class="num">66,9</td><td class="num">77,7</td></tr>
+            <tr><td>Uso de Internet</td><td class="num">42,2%</td><td class="num">87,1%</td></tr>
+            <tr><td>Agricultura / PBI</td><td class="num">19,2%</td><td class="num">3,0%</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <figure class="figpane" data-src="informe_final/figures/clust_pca_k2_2023.html">
+        <div class="loading"><span class="dot"></span> Cargando gráfico interactivo…</div>
+        <figcaption class="figcap">Conglomerados k=2 proyectados sobre PC1–PC2 (2023).</figcaption>
+      </figure>
+    </div>
+    <div class="slide-foot"><div class="bib"></div><div class="pageno"></div></div>
+  </section>
+
+  <!-- 12 · TEMPORAL DESCOMPOSICIÓN -->
+  <section class="slide">
+    <p class="kicker">Comparación temporal</p>
+    <h2 class="title">2005 vs 2023 · corrimiento secular</h2>
+    <div class="slide-body split">
+      <ul class="points">
+        <li>Se compara en un <b>espacio común</b> (los dos años apilados con la misma estandarización).</li>
+        <li>El avance medio de PC1 está dominado por la <span class="hl">difusión global de Internet (47,4%)</span> y la esperanza de vida (22,2%); el PBI pc aporta solo 9,4%.</li>
+        <li>Por eso se interpreta <b>posición relativa</b>, no coordenadas absolutas.</li>
+      </ul>
+      <figure class="figpane" data-src="informe_final/figures/compare_descomposicion_dPC1.html">
+        <div class="loading"><span class="dot"></span> Cargando gráfico interactivo…</div>
+        <figcaption class="figcap">Descomposición del corrimiento absoluto de PC1 (2005→2023).</figcaption>
+      </figure>
+    </div>
+    <div class="slide-foot"><div class="bib"></div><div class="pageno"></div></div>
+  </section>
+
+  <!-- 13 · TEMPORAL MOVILIDAD -->
+  <section class="slide">
+    <p class="kicker">Comparación temporal</p>
+    <h2 class="title">Movilidad relativa, eje estable</h2>
+    <div class="slide-body split">
+      <ul class="points">
+        <li>La estructura del gradiente se mantiene: congruencia de Tucker <b>0,962</b>, correlación de cargas <b>0,946</b>.</li>
+        <li>Panel común de 183 países: <b>15 ascienden</b> de tier y <b>1 desciende</b>.</li>
+        <li>Ascensos: <span class="hl">Georgia, China, Mongolia</span>. Descensos: <span class="hl">Venezuela, Líbano, Argentina</span>.</li>
+      </ul>
+      <figure class="figpane" data-src="informe_final/figures/compare_trayectorias.html">
+        <div class="loading"><span class="dot"></span> Cargando gráfico interactivo…</div>
+        <figcaption class="figcap">Movilidad relativa de países entre 2005 y 2023.</figcaption>
+      </figure>
+    </div>
+    <div class="slide-foot"><div class="bib"></div><div class="pageno"></div></div>
+  </section>
+
+  <!-- 14 · SENSIBILIDAD -->
+  <section class="slide">
+    <p class="kicker">Robustez</p>
+    <h2 class="title">Análisis de sensibilidad</h2>
+    <div class="slide-body split">
+      <ul class="points">
+        <li><b>Base:</b> estandarización clásica + KNN + 14 variables + k-means k=2.</li>
+        <li>Casi todo <span class="hl">estable</span>: MICE, casos completos, clustering sobre 2/3/5 PCs y sin outliers mantienen el ARI alto y las cargas de PC1.</li>
+        <li>Única excepción: <b>RobustScaler con Macao</b> rompe la partición; al quitar ese outlier se recompone.</li>
+      </ul>
+      <div style="align-self:center">
+        <table class="mini">
+          <caption>ARI vs. base (1 = misma agrupación) · correlación de cargas PC1</caption>
+          <thead><tr><th>Variante</th><th class="num">ARI</th><th class="num">corr&nbsp;PC1</th><th class="num">n</th></tr></thead>
+          <tbody>
+            <tr><td>Imputación MICE</td><td class="num">0,958</td><td class="num">1,000</td><td class="num">191</td></tr>
+            <tr><td>Casos completos</td><td class="num">1,000</td><td class="num">0,996</td><td class="num">135</td></tr>
+            <tr class="warn"><td>RobustScaler (todos)</td><td class="num">−0,004</td><td class="num">0,009</td><td class="num">191</td></tr>
+            <tr><td>RobustScaler sin Macao</td><td class="num">0,743</td><td class="num">0,925</td><td class="num">190</td></tr>
+            <tr><td>Clustering sobre 3 PCs</td><td class="num">1,000</td><td class="num">1,000</td><td class="num">191</td></tr>
+            <tr><td>Sin 10 outliers</td><td class="num">0,934</td><td class="num">0,982</td><td class="num">181</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="slide-foot"><div class="bib"></div><div class="pageno"></div></div>
+  </section>
+
+  <!-- 15 · CONCLUSIONES -->
+  <section class="slide">
+    <p class="kicker">Conclusiones</p>
+    <h2 class="title">Resultados principales</h2>
+    <div class="slide-body solo">
+      <ul class="points">
+        <li>El desarrollo tiene una <b>dimensión dominante</b> (PC1, 41,3%) pero <span class="hl">no es unidimensional</span>: también importan estructura productiva y coyuntura macro.</li>
+        <li>Hay una <b>macro-separación robusta</b> entre países desarrollados y en desarrollo, entendida mejor como un <span class="hl">gradiente con cortes útiles</span> que como una taxonomía cerrada.</li>
+        <li>Entre 2005 y 2023 la <b>estructura se mantiene estable</b>; lo que cambia es la posición relativa (15 ascensos, 1 descenso).</li>
+        <li>Cada decisión metodológica importa y fue <b>verificada, no asumida</b>.</li>
+      </ul>
+    </div>
+    <div class="slide-foot"><div class="bib"></div><div class="pageno"></div></div>
+  </section>
+
+  <!-- 16 · REFERENCIAS -->
+  <section class="slide">
+    <p class="kicker">Apéndice</p>
+    <h2 class="title">Referencias</h2>
+    <div class="slide-body solo">
+      <ol class="refs">
+        <li><b>Yeo &amp; Johnson (2000).</b> A new family of power transformations to improve normality or symmetry. <i>Biometrika</i> 87(4), 954–959. <a href="https://doi.org/10.1093/biomet/87.4.954" target="_blank" rel="noopener">doi</a></li>
+        <li><b>Horn (1965).</b> A rationale and test for the number of factors in factor analysis. <i>Psychometrika</i> 30(2), 179–185. <a href="https://doi.org/10.1007/BF02289447" target="_blank" rel="noopener">doi</a></li>
+        <li><b>Hubert &amp; Arabie (1985).</b> Comparing partitions. <i>Journal of Classification</i> 2(1), 193–218. <a href="https://doi.org/10.1007/BF01908075" target="_blank" rel="noopener">doi</a></li>
+        <li><b>Rousseeuw (1987).</b> Silhouettes: a graphical aid to the interpretation and validation of cluster analysis. <i>J. Comp. Appl. Math.</i> 20, 53–65. <a href="https://doi.org/10.1016/0377-0427(87)90125-7" target="_blank" rel="noopener">doi</a></li>
+        <li><b>Caliński &amp; Harabasz (1974).</b> A dendrite method for cluster analysis. <i>Communications in Statistics</i> 3(1), 1–27. <a href="https://doi.org/10.1080/03610927408827101" target="_blank" rel="noopener">doi</a></li>
+        <li><b>Davies &amp; Bouldin (1979).</b> A cluster separation measure. <i>IEEE TPAMI</i> PAMI-1(2), 224–227. <a href="https://doi.org/10.1109/TPAMI.1979.4766909" target="_blank" rel="noopener">doi</a></li>
+        <li><b>Tibshirani, Walther &amp; Hastie (2001).</b> Estimating the number of clusters via the gap statistic. <i>JRSS-B</i> 63(2), 411–423. <a href="https://doi.org/10.1111/1467-9868.00293" target="_blank" rel="noopener">doi</a></li>
+        <li><b>Hennig (2007).</b> Cluster-wise assessment of cluster stability. <i>Comp. Stat. &amp; Data Analysis</i> 52(1), 258–271. <a href="https://doi.org/10.1016/j.csda.2006.11.025" target="_blank" rel="noopener">doi</a></li>
+      </ol>
+    </div>
+    <div class="slide-foot"><div class="bib">Informe completo en <b>informe_final/index.html</b> · Universidad Austral</div><div class="pageno"></div></div>
+  </section>
+
+</div>
+</div>
+
+<nav class="controls">
+  <button id="prev" title="Anterior (←)">‹</button>
+  <span class="counter"><b id="cur">1</b> / <span id="total">17</span></span>
+  <button id="next" title="Siguiente (→)">›</button>
+  <button id="fs" title="Pantalla completa (f)">⛶</button>
+  <button id="ov" title="Índice (o)">☰</button>
+</nav>
+
+<div class="overview" id="overview">
+  <h3>Índice · clic para saltar &nbsp;<span class="kbd">(Esc para cerrar)</span></h3>
+  <div class="ovgrid" id="ovgrid"></div>
+</div>
+
+<script>
+(function(){
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  const total = slides.length;
+  let i = 0;
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // scale the fixed 1280x720 stage to fit any viewport (letterbox)
+  const stage = document.getElementById('stage');
+  function fit(){
+    // reserve space at the bottom (matches .deck padding-bottom) so the floating
+    // controls never overlap slide content such as the per-slide bibliography
+    const s = Math.min(window.innerWidth*0.97/1280, (window.innerHeight-74)*0.96/720);
+    stage.style.transform = 'scale('+s+')';
+  }
+  window.addEventListener('resize', fit);
+  fit();
+
+  const bar = document.getElementById('bar');
+  const cur = document.getElementById('cur');
+  const prev = document.getElementById('prev');
+  const next = document.getElementById('next');
+  document.getElementById('total').textContent = total;
+
+  // page numbers
+  slides.forEach((s,idx)=>{
+    const p = s.querySelector('.pageno');
+    if(p) p.textContent = (idx+1)+' / '+total;
+  });
+
+  // animated counters on the cover
+  function animateCounts(){
+    const els = document.querySelectorAll('.metricstrip strong[data-count]');
+    els.forEach(el=>{
+      const target = +el.dataset.count;
+      if(reduce){ el.textContent = target.toLocaleString('es-AR'); return; }
+      const dur = 1200, start = performance.now();
+      function tick(now){
+        const p = Math.min(1,(now-start)/dur);
+        const e = 1-Math.pow(1-p,3);
+        el.textContent = Math.round(target*e).toLocaleString('es-AR');
+        if(p<1) requestAnimationFrame(tick); else el.textContent = target.toLocaleString('es-AR');
+      }
+      requestAnimationFrame(tick);
+    });
+  }
+
+  // make a Plotly figure inside an iframe fill its pane (override its fixed height)
+  function fillPlot(f){
+    try{
+      const w=f.contentWindow, d=f.contentDocument;
+      if(!w || !d || !w.Plotly) return false;
+      const div=d.querySelector('.plotly-graph-div');
+      if(!div) return false;
+      d.documentElement.style.height='100%';
+      d.body.style.margin='0'; d.body.style.height='100%'; d.body.style.overflow='hidden';
+      let host=div.parentElement; while(host && host!==d.body){ host.style.height='100%'; host=host.parentElement; }
+      div.style.height='100%'; div.style.width='100%';
+      w.Plotly.Plots.resize(div);
+      return true;
+    }catch(e){ return false; }
+  }
+  function fitFrame(f){
+    let t=0; (function go(){ if(fillPlot(f)) return; if(t++<60) setTimeout(go,150); })();
+  }
+  function loadFigures(s, resize){
+    s.querySelectorAll('.figpane[data-src]').forEach(pane=>{
+      let f = pane.querySelector('iframe');
+      if(!f){
+        f = document.createElement('iframe');
+        f.title = 'Gráfico interactivo';
+        f.src = pane.dataset.src;
+        const cap = pane.querySelector('.figcap');
+        pane.insertBefore(f, cap || null);
+        const ld = pane.querySelector('.loading');
+        f.addEventListener('load', ()=>{ if(ld) ld.style.display='none'; fitFrame(f); });
+      } else if(resize){ fitFrame(f); }
+    });
+  }
+
+  function show(n){
+    n = Math.max(0, Math.min(total-1, n));
+    slides[i].classList.remove('active');
+    i = n;
+    slides[i].classList.add('active');
+    loadFigures(slides[i], true);
+    // preload next slide's figures softly
+    if(slides[i+1]) loadFigures(slides[i+1], false);
+    cur.textContent = i+1;
+    bar.style.width = ((i)/(total-1)*100)+'%';
+    prev.disabled = (i===0);
+    next.disabled = (i===total-1);
+    if(i===0) animateCounts();
+    history.replaceState(null,'','#'+(i+1));
+  }
+
+  prev.onclick = ()=>show(i-1);
+  next.onclick = ()=>show(i+1);
+
+  document.addEventListener('keydown', e=>{
+    if(ovEl.classList.contains('open')){ if(e.key==='Escape') toggleOv(false); return; }
+    switch(e.key){
+      case 'ArrowRight': case 'PageDown': case ' ': e.preventDefault(); show(i+1); break;
+      case 'ArrowLeft': case 'PageUp': show(i-1); break;
+      case 'Home': show(0); break;
+      case 'End': show(total-1); break;
+      case 'f': case 'F': toggleFs(); break;
+      case 'o': case 'O': toggleOv(); break;
+    }
+  });
+
+  // fullscreen
+  function toggleFs(){
+    if(!document.fullscreenElement){ document.documentElement.requestFullscreen && document.documentElement.requestFullscreen(); }
+    else { document.exitFullscreen && document.exitFullscreen(); }
+  }
+  document.getElementById('fs').onclick = toggleFs;
+
+  // overview
+  const ovEl = document.getElementById('overview');
+  const ovgrid = document.getElementById('ovgrid');
+  slides.forEach((s,idx)=>{
+    const t = s.querySelector('.title') ? s.querySelector('.title').textContent
+            : (s.querySelector('h1') ? s.querySelector('h1').textContent : 'Portada');
+    const c = document.createElement('div');
+    c.className='ovcard';
+    c.innerHTML = '<div class="n">'+(idx+1).toString().padStart(2,'0')+'</div><div class="t">'+t+'</div>';
+    c.onclick = ()=>{ show(idx); toggleOv(false); };
+    ovgrid.appendChild(c);
+  });
+  function toggleOv(force){
+    const open = force===undefined ? !ovEl.classList.contains('open') : force;
+    ovEl.classList.toggle('open', open);
+  }
+  document.getElementById('ov').onclick = ()=>toggleOv();
+  ovEl.onclick = e=>{ if(e.target===ovEl) toggleOv(false); };
+
+  // deep-link
+  const start = parseInt((location.hash||'').replace('#',''),10);
+  if(start>=1 && start<=total){ i=0; show(start-1); } else { show(0); }
+})();
+</script>
+</body>
+</html>

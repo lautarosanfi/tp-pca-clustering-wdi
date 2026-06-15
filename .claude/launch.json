@@ -2,10 +2,14 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "informe",
-      "runtimeExecutable": "/Users/bdirienzo/Documents/Austral/2026/analisis/tp-pca-clustering-wdi/.venv/bin/python",
-      "runtimeArgs": ["-m", "http.server", "8732", "--directory", "/Users/bdirienzo/Documents/Austral/2026/analisis/tp-pca-clustering-wdi/informe_final"],
-      "port": 8732
+      "name": "static",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": [
+        "-I",
+        "-c",
+        "import os,functools,http.server,socketserver; root='/Users/bdirienzo/Documents/tp-pca-clustering-wdi'; os.chdir(root); H=functools.partial(http.server.SimpleHTTPRequestHandler, directory=root); socketserver.TCPServer(('',8765),H).serve_forever()"
+      ],
+      "port": 8765
     }
   ]
 }
