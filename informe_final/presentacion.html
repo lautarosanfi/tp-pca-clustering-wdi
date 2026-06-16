@@ -123,6 +123,8 @@
      overlap) and scale it down to fit, preserving aspect ratio */
   .figframe{position:relative; flex:1 1 auto; min-height:0; overflow:hidden; background:#fff;}
   .figframe iframe{position:absolute; top:0; left:0; flex:none; width:auto; transform-origin:top left; background:#fff;}
+  /* static-image figure: fill the pane preserving aspect ratio */
+  .figstatic{flex:1 1 auto; min-height:0; width:100%; height:100%; object-fit:contain; display:block; background:#fff; padding:6px;}
   .figpane .loading{
     position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
     color:var(--muted); font-size:.9rem; gap:10px; background:var(--pane);
@@ -156,6 +158,7 @@
     box-shadow:0 50px 110px -30px rgba(0,0,0,.7); border:1px solid rgba(255,255,255,.12);
   }
   .lb-frame iframe{position:absolute; top:0; left:0; border:0; transform-origin:top left; background:#fff;}
+  .lb-frame img{width:100%; height:100%; object-fit:contain; display:block; background:#fff; padding:10px;}
   .lb-loading{
     position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
     color:var(--muted); font-size:.9rem; gap:10px; background:#fff;
@@ -429,9 +432,9 @@
         <li>Aparece un <span class="hl">bloque coherente de desarrollo socioeconómico</span>: justo el tipo de estructura que el PCA resume.</li>
         <li>La correlación no se lee como causalidad, sino como <b>evidencia de redundancia</b>.</li>
       </ul>
-      <figure class="figpane" data-src="figures/eda_correlacion_2023.html" data-tall="720">
+      <figure class="figpane" data-src="figures/eda_correlacion_2023.html" data-tall="760">
         <div class="loading"><span class="dot"></span> Cargando gráfico interactivo…</div>
-        <figcaption class="figcap">Correlaciones de Pearson entre variables transformadas (2023).</figcaption>
+        <figcaption class="figcap">Correlaciones de Pearson entre variables transformadas (2023). <span class="hint">Diagonal: distribución de cada variable · hover / zoom.</span></figcaption>
       </figure>
     </div>
     <div class="slide-foot"><div class="bib"></div><div class="pageno"></div></div>
@@ -787,12 +790,33 @@
   function fitFrameSoon(pane){
     let t=0; (function go(){ if(fitFrame(pane)) return; if(t++<60) setTimeout(go,150); })();
   }
+  function addExpandButton(pane){
+    const exp = document.createElement('button');
+    exp.className = 'fig-expand'; exp.type = 'button'; exp.title = 'Ampliar gráfico';
+    exp.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3H4v5M15 3h5v5M9 21H4v-5M15 21h5v-5"/></svg>Ampliar';
+    exp.addEventListener('click', ()=> openLightbox(pane));
+    pane.appendChild(exp);
+  }
   function loadFigures(s, resize){
-    s.querySelectorAll('.figpane[data-src]').forEach(pane=>{
+    s.querySelectorAll('.figpane[data-src], .figpane[data-img]').forEach(pane=>{
+      const ld = pane.querySelector('.loading');
+      const cap = pane.querySelector('.figcap');
+      // static-image figure (e.g. the correlation matrix, whose static design
+      // shows the per-variable distributions on the diagonal)
+      if(pane.hasAttribute('data-img')){
+        if(!pane.querySelector('.figstatic')){
+          const img = document.createElement('img');
+          img.className = 'figstatic'; img.alt = 'Gráfico';
+          img.addEventListener('load', ()=>{ if(ld) ld.style.display='none'; });
+          pane.insertBefore(img, cap || null);
+          img.src = pane.dataset.img;
+          addExpandButton(pane);
+        }
+        return;
+      }
+      // interactive Plotly figure inside a scaled iframe
       let wrap = pane.querySelector('.figframe');
       if(!wrap){
-        const cap = pane.querySelector('.figcap');
-        const ld = pane.querySelector('.loading');
         const f = document.createElement('iframe');
         f.title = 'Gráfico interactivo';
         wrap = document.createElement('div');
@@ -801,13 +825,7 @@
         pane.insertBefore(wrap, cap || null);
         f.addEventListener('load', ()=>{ if(ld) ld.style.display='none'; fitFrameSoon(pane); });
         f.src = pane.dataset.src;   // set src after the load listener is attached
-
-        // "Ampliar" button → open the figure enlarged in a lightbox
-        const exp = document.createElement('button');
-        exp.className = 'fig-expand'; exp.type = 'button'; exp.title = 'Ampliar gráfico';
-        exp.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3H4v5M15 3h5v5M9 21H4v-5M15 21h5v-5"/></svg>Ampliar';
-        exp.addEventListener('click', ()=> openLightbox(pane));
-        pane.appendChild(exp);
+        addExpandButton(pane);
       }
       if(resize) fitFrameSoon(pane);
     });
@@ -831,23 +849,32 @@
   }
   function sizeLbSoon(){ let t=0; (function go(){ if(sizeLb()) return; if(t++<60) setTimeout(go,120); })(); }
   function openLightbox(pane){
-    lbNativeH = parseInt(pane.dataset.tall,10) || 600;
     const capEl = pane.querySelector('.figcap');
     lbCap.innerHTML = capEl ? capEl.innerHTML : '';
-    lbFrame.querySelectorAll('iframe').forEach(n=>n.remove());
+    lbFrame.querySelectorAll('iframe, img').forEach(n=>n.remove());
     const ld = lbFrame.querySelector('.lb-loading');
     if(ld) ld.style.display = '';
-    const f = document.createElement('iframe');
-    f.title = 'Gráfico ampliado';
-    f.addEventListener('load', ()=>{ if(ld) ld.style.display='none'; sizeLbSoon(); });
-    lbFrame.appendChild(f);
-    f.src = pane.dataset.src;
+    if(pane.hasAttribute('data-img')){
+      // static figure: object-fit:contain handles sizing, no scaling needed
+      const img = document.createElement('img');
+      img.alt = 'Gráfico ampliado';
+      img.addEventListener('load', ()=>{ if(ld) ld.style.display='none'; });
+      lbFrame.appendChild(img);
+      img.src = pane.dataset.img;
+    } else {
+      lbNativeH = parseInt(pane.dataset.tall,10) || 600;
+      const f = document.createElement('iframe');
+      f.title = 'Gráfico ampliado';
+      f.addEventListener('load', ()=>{ if(ld) ld.style.display='none'; sizeLbSoon(); });
+      lbFrame.appendChild(f);
+      f.src = pane.dataset.src;
+      sizeLbSoon();
+    }
     lb.classList.add('open'); lb.setAttribute('aria-hidden','false');
-    sizeLbSoon();
   }
   function closeLightbox(){
     lb.classList.remove('open'); lb.setAttribute('aria-hidden','true');
-    lbFrame.querySelectorAll('iframe').forEach(n=>n.remove());
+    lbFrame.querySelectorAll('iframe, img').forEach(n=>n.remove());
   }
   document.getElementById('lbClose').onclick = closeLightbox;
   lb.addEventListener('click', e=>{ if(e.target===lb) closeLightbox(); });

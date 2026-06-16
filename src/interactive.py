@@ -168,35 +168,61 @@ def fig_histograms(d):
 
 
 def fig_correlation(d):
+    """Corner plot interactivo: triángulo inferior con el coeficiente r (color
+    divergente + valor) y la DISTRIBUCIÓN de cada variable transformada sobre la
+    diagonal. Replica el diseño estático pero con hover y zoom de Plotly."""
     cols = d["cols"]
-    corr = d["std"][cols].corr(method="pearson")
+    std = d["std"]
+    z = std[cols].corr(method="pearson").values
     labels = [SHORT[c] for c in cols]
     n = len(cols)
-    z = corr.values
-    # listas nativas con None en el triángulo superior (evita encoding base64 2D)
-    zmask = [[None if j > i else float(z[i, j]) for j in range(n)] for i in range(n)]
-    fig = go.Figure(go.Heatmap(
-        z=zmask, x=labels, y=labels,
-        colorscale=DIVSCALE, zmid=0, zmin=-1, zmax=1,
-        xgap=2, ygap=2,
-        colorbar=dict(title="r", len=0.7, thickness=14),
-        hovertemplate="%{y} – %{x}<br>r = %{z:.2f}<extra></extra>",
-    ))
-    fig.update_layout(**_layout(
-        f"Correlaciones de Pearson entre las 14 variables transformadas — {config.YEAR_MODERN}",
-        height=720))
-    fig.update_yaxes(autorange="reversed", showgrid=False)
-    fig.update_xaxes(showgrid=False, tickangle=-40)
-    # anotar r en cada celda del triángulo inferior
-    anns = []
+
+    fig = make_subplots(rows=n, cols=n,
+                        horizontal_spacing=0.006, vertical_spacing=0.006)
+
     for i in range(n):
-        for j in range(i + 1):          # triángulo inferior + diagonal
-            rval = float(z[i, j])
-            anns.append(dict(x=labels[j], y=labels[i], text=f"{rval:.2f}",
-                             showarrow=False,
-                             font=dict(size=8,
-                                       color="white" if abs(rval) > 0.5 else NEGRO)))
-    fig.update_layout(annotations=anns)
+        for j in range(n):
+            r_, c_ = i + 1, j + 1
+            if i == j:                              # diagonal: distribución
+                vals = std[cols[i]].dropna()
+                fig.add_trace(go.Histogram(
+                    x=vals, nbinsx=14, marker_color=AZUL,
+                    marker_line_width=0, showlegend=False,
+                    hovertemplate=(f"{labels[i]}<br>valor (z): "
+                                   "%{x:.2f}<br>n: %{y}<extra></extra>")),
+                    row=r_, col=c_)
+            elif i > j:                             # triángulo inferior: r
+                rval = float(z[i, j])
+                fig.add_trace(go.Heatmap(
+                    z=[[rval]], zmin=-1, zmax=1, zmid=0, colorscale=DIVSCALE,
+                    showscale=(i == 1 and j == 0),
+                    colorbar=dict(title="r", len=0.55, thickness=12,
+                                  x=1.015, y=0.5, tickvals=[-1, -0.5, 0, 0.5, 1]),
+                    hovertemplate=(f"{labels[i]} – {labels[j]}<br>"
+                                   f"r = {rval:.2f}<extra></extra>")),
+                    row=r_, col=c_)
+                fig.add_annotation(
+                    text=f"{rval:.2f}", x=0, y=0, showarrow=False, row=r_, col=c_,
+                    font=dict(size=8,
+                              color="white" if abs(rval) > 0.5 else NEGRO))
+            # i < j: triángulo superior vacío
+
+    # ocultar ejes en todo el grid; rótulos sólo en los bordes (fila inf. y col. izq.)
+    fig.update_xaxes(showgrid=False, zeroline=False, showticklabels=False,
+                     ticks="", linecolor="#dcdcdc", linewidth=0.4)
+    fig.update_yaxes(showgrid=False, zeroline=False, showticklabels=False,
+                     ticks="", linecolor="#dcdcdc", linewidth=0.4)
+    for k in range(n):
+        fig.update_xaxes(showticklabels=True, tickvals=[0], ticktext=[labels[k]],
+                         tickangle=-45, tickfont=dict(size=8), row=n, col=k + 1)
+        fig.update_yaxes(showticklabels=True, tickvals=[0], ticktext=[labels[k]],
+                         tickfont=dict(size=8), row=k + 1, col=1)
+
+    fig.update_layout(**_layout(
+        (f"Correlaciones de Pearson entre las 14 variables transformadas — "
+         f"{config.YEAR_MODERN}<br><sub>Triángulo inferior: coeficiente r  ·  "
+         "Diagonal: distribución de cada variable</sub>"),
+        height=760, bargap=0.05, margin=dict(l=72, r=60, t=92, b=72)))
     _save(fig, "eda_correlacion_2023")
 
 
