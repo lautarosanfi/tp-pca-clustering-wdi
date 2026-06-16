@@ -123,6 +123,8 @@
      overlap) and scale it down to fit, preserving aspect ratio */
   .figframe{position:relative; flex:1 1 auto; min-height:0; overflow:hidden; background:#fff;}
   .figframe iframe{position:absolute; top:0; left:0; flex:none; width:auto; transform-origin:top left; background:#fff;}
+  /* static-image figure: fill the pane preserving aspect ratio */
+  .figstatic{flex:1 1 auto; min-height:0; width:100%; height:100%; object-fit:contain; display:block; background:#fff; padding:6px;}
   .figpane .loading{
     position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
     color:var(--muted); font-size:.9rem; gap:10px; background:var(--pane);
@@ -131,6 +133,46 @@
   @keyframes pulse{0%,100%{opacity:.3;transform:scale(.8)}50%{opacity:1;transform:scale(1)}}
   .figcap{font-size:.78rem; color:var(--muted); padding:9px 14px; border-top:1px solid var(--line); background:#fff;}
   .hint{font-size:.72rem;color:var(--teal);font-weight:600}
+
+  /* expand-to-fullscreen button on every figure pane */
+  .fig-expand{
+    position:absolute; top:9px; left:9px; z-index:6;
+    display:inline-flex; align-items:center; gap:6px;
+    height:30px; padding:0 11px 0 9px; border-radius:9px; border:1px solid var(--line);
+    background:rgba(255,255,255,.94); color:var(--teal-deep); cursor:pointer;
+    font-family:var(--font-body); font-size:.72rem; font-weight:600; letter-spacing:.01em; line-height:1;
+    box-shadow:0 5px 14px -6px rgba(4,40,45,.4); transition:transform .15s var(--ease), background .15s, color .15s;
+  }
+  .fig-expand:hover{transform:translateY(-2px); background:#fff; color:var(--teal);}
+  .fig-expand svg{width:14px; height:14px; display:block;}
+
+  /* fullscreen lightbox for an enlarged, interactive figure */
+  .lightbox{
+    position:fixed; inset:0; z-index:60; display:none; flex-direction:column;
+    align-items:center; justify-content:center; gap:14px; padding:3vh 3vw 2vh;
+    background:rgba(4,18,22,.84); backdrop-filter:blur(9px); -webkit-backdrop-filter:blur(9px);
+  }
+  .lightbox.open{display:flex;}
+  .lb-frame{
+    position:relative; width:94vw; height:84vh; background:#fff; border-radius:14px; overflow:hidden;
+    box-shadow:0 50px 110px -30px rgba(0,0,0,.7); border:1px solid rgba(255,255,255,.12);
+  }
+  .lb-frame iframe{position:absolute; top:0; left:0; border:0; transform-origin:top left; background:#fff;}
+  .lb-frame img{width:100%; height:100%; object-fit:contain; display:block; background:#fff; padding:10px;}
+  .lb-loading{
+    position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    color:var(--muted); font-size:.9rem; gap:10px; background:#fff;
+  }
+  .lb-loading .dot{width:10px;height:10px;border-radius:50%;background:var(--aqua);animation:pulse 1s infinite ease-in-out}
+  .lb-cap{color:#dff3f1; font-size:.86rem; text-align:center; max-width:90vw; line-height:1.4;}
+  .lb-cap .hint{color:var(--aqua);}
+  .lb-close{
+    position:fixed; top:16px; right:20px; z-index:61;
+    width:44px; height:44px; border-radius:50%; border:1px solid rgba(255,255,255,.2);
+    background:rgba(255,255,255,.12); color:#eafcfb; font-size:1.25rem; cursor:pointer;
+    display:flex; align-items:center; justify-content:center; transition:background .16s, transform .16s;
+  }
+  .lb-close:hover{background:var(--grad-teal); transform:translateY(-2px);}
 
   /* footer with per-slide bibliography */
   .slide-foot{
@@ -390,9 +432,9 @@
         <li>Aparece un <span class="hl">bloque coherente de desarrollo socioeconómico</span>: justo el tipo de estructura que el PCA resume.</li>
         <li>La correlación no se lee como causalidad, sino como <b>evidencia de redundancia</b>.</li>
       </ul>
-      <figure class="figpane" data-src="figures/eda_correlacion_2023.html">
+      <figure class="figpane" data-src="figures/eda_correlacion_2023.html" data-tall="760">
         <div class="loading"><span class="dot"></span> Cargando gráfico interactivo…</div>
-        <figcaption class="figcap">Correlaciones de Pearson entre variables transformadas (2023).</figcaption>
+        <figcaption class="figcap">Correlaciones de Pearson entre variables transformadas (2023). <span class="hint">Diagonal: distribución de cada variable · hover / zoom.</span></figcaption>
       </figure>
     </div>
     <div class="slide-foot"><div class="bib"></div><div class="pageno"></div></div>
@@ -426,7 +468,7 @@
         <li>Horn contrasta los autovalores contra matrices aleatorias: <span class="hl">controla la estructura por ruido</span> → criterio principal.</li>
         <li><b>3 componentes</b> retenidos = <b>64,9%</b> de varianza acumulada.</li>
       </ul>
-      <figure class="figpane" data-src="figures/pca_scree_2023.html">
+      <figure class="figpane" data-src="figures/pca_scree_2023.html" data-tall="480">
         <div class="loading"><span class="dot"></span> Cargando gráfico interactivo…</div>
         <figcaption class="figcap">Scree plot, umbral de Horn y varianza acumulada (2023).</figcaption>
       </figure>
@@ -467,7 +509,7 @@
         <li>El PCA no "aprendió" la etiqueta: los indicadores numéricos contienen <span class="hl">estructura suficiente</span> para reconstruir diferencias de desarrollo.</li>
         <li>Valida la lectura de PC1 como gradiente de desarrollo.</li>
       </ul>
-      <figure class="figpane" data-src="figures/pca_biplot_ingreso_2023.html">
+      <figure class="figpane" data-src="figures/pca_biplot_ingreso_2023.html" data-tall="680">
         <div class="loading"><span class="dot"></span> Cargando gráfico interactivo…</div>
         <figcaption class="figcap">Biplot PC1–PC2 coloreado por nivel de ingreso (2023).</figcaption>
       </figure>
@@ -484,7 +526,7 @@
         <li style="margin:0">Gradiente <b>norte–sur</b>: Europa Occidental, Norteamérica, Australia y Japón con los scores más altos.</li>
         <li style="margin:0">África subsahariana y parte del sur de Asia, los más bajos; América Latina intermedia.</li>
       </ul>
-      <figure class="figpane" data-src="figures/map_pc1_2023.html">
+      <figure class="figpane" data-src="figures/map_pc1_2023.html" data-tall="520">
         <div class="loading"><span class="dot"></span> Cargando mapa interactivo…</div>
         <figcaption class="figcap">Score de PC1 por país (2023). <span class="hint">Hover para ver país y score exacto.</span></figcaption>
       </figure>
@@ -542,7 +584,7 @@
           </tbody>
         </table>
       </div>
-      <figure class="figpane" data-src="figures/clust_pca_k2_2023.html">
+      <figure class="figpane" data-src="figures/clust_pca_k2_2023.html" data-tall="640">
         <div class="loading"><span class="dot"></span> Cargando gráfico interactivo…</div>
         <figcaption class="figcap">Conglomerados k=2 proyectados sobre PC1–PC2 (2023).</figcaption>
       </figure>
@@ -560,7 +602,7 @@
         <li>El avance medio de PC1 está dominado por la <span class="hl">difusión global de Internet (47,4%)</span> y la esperanza de vida (22,2%); el PBI pc aporta solo 9,4%.</li>
         <li>Por eso se interpreta <b>posición relativa</b>, no coordenadas absolutas.</li>
       </ul>
-      <figure class="figpane" data-src="figures/compare_descomposicion_dPC1.html">
+      <figure class="figpane" data-src="figures/compare_descomposicion_dPC1.html" data-tall="560">
         <div class="loading"><span class="dot"></span> Cargando gráfico interactivo…</div>
         <figcaption class="figcap">Descomposición del corrimiento absoluto de PC1 (2005→2023).</figcaption>
       </figure>
@@ -578,7 +620,7 @@
         <li>Panel común de 183 países: <b>15 ascienden</b> de tier y <b>1 desciende</b>.</li>
         <li>Ascensos: <span class="hl">Georgia, China, Mongolia</span>. Descensos: <span class="hl">Venezuela, Líbano, Argentina</span>.</li>
       </ul>
-      <figure class="figpane" data-src="figures/compare_trayectorias.html">
+      <figure class="figpane" data-src="figures/compare_trayectorias.html" data-tall="680">
         <div class="loading"><span class="dot"></span> Cargando gráfico interactivo…</div>
         <figcaption class="figcap">Movilidad relativa de países entre 2005 y 2023.</figcaption>
       </figure>
@@ -664,6 +706,14 @@
   <div class="ovgrid" id="ovgrid"></div>
 </div>
 
+<div class="lightbox" id="lightbox" aria-hidden="true">
+  <button class="lb-close" id="lbClose" title="Cerrar (Esc)">✕</button>
+  <div class="lb-frame" id="lbFrame">
+    <div class="lb-loading"><span class="dot"></span> Cargando gráfico…</div>
+  </div>
+  <div class="lb-cap" id="lbCap"></div>
+</div>
+
 <script>
 (function(){
   const slides = Array.from(document.querySelectorAll('.slide'));
@@ -711,76 +761,124 @@
     });
   }
 
-  // make a Plotly figure inside an iframe fill its pane (override its fixed height)
-  function fillPlot(f){
-    try{
-      const w=f.contentWindow, d=f.contentDocument;
-      if(!w || !d || !w.Plotly) return false;
-      const div=d.querySelector('.plotly-graph-div');
-      if(!div) return false;
-      d.documentElement.style.height='100%';
-      d.body.style.margin='0'; d.body.style.height='100%'; d.body.style.overflow='hidden';
-      let host=div.parentElement; while(host && host!==d.body){ host.style.height='100%'; host=host.parentElement; }
-      div.style.height='100%'; div.style.width='100%';
-      w.Plotly.Plots.resize(div);
-      return true;
-    }catch(e){ return false; }
-  }
-  function fitFrame(f){
-    let t=0; (function go(){ if(fillPlot(f)) return; if(t++<60) setTimeout(go,150); })();
-  }
-  // A "tall" figure (e.g. 14-histogram grid) overlaps its labels when squashed
-  // into the pane. Instead, render it at its native height and scale it to fit.
-  function fillTall(pane){
+  // Fit a Plotly figure to its pane. Each figure is exported at a fixed native
+  // pixel height (data-tall) and width:100% with responsive:true. We render the
+  // iframe at that native height and a computed logical width, then shrink the
+  // whole iframe with a CSS transform so it fills the pane while preserving the
+  // figure's internal label spacing (e.g. the 14-histogram grid).
+  //
+  // Crucially this is done ENTIRELY from the parent via the iframe element's own
+  // box + transform — we never touch the iframe's document. Reaching into the
+  // iframe (contentWindow/contentDocument) throws a SecurityError when the deck
+  // is opened from disk (file://), which previously left figures unscaled and
+  // squashed. Sizing the iframe makes the responsive Plotly inside reflow itself.
+  function fitFrame(pane){
     const wrap = pane.querySelector('.figframe');
     if(!wrap) return false;
     const f = wrap.querySelector('iframe');
     if(!f) return false;
-    const nativeH = parseInt(pane.dataset.tall,10) || 700;
+    const nativeH = parseInt(pane.dataset.tall,10) || 600;
     const availW = wrap.clientWidth, availH = wrap.clientHeight;
-    if(!availW || !availH) return false;
-    try{
-      const w=f.contentWindow, d=f.contentDocument;
-      if(!w || !d || !w.Plotly) return false;
-      const div=d.querySelector('.plotly-graph-div');
-      if(!div) return false;
-      const scale = availH / nativeH;
-      const logicalW = Math.round(availW / scale);
-      d.documentElement.style.height='100%';
-      d.body.style.margin='0'; d.body.style.overflow='hidden';
-      div.style.width = logicalW+'px'; div.style.height = nativeH+'px';
-      w.Plotly.Plots.resize(div);
-      f.style.width = logicalW+'px'; f.style.height = nativeH+'px';
-      f.style.transform = 'scale('+scale+')';
-      return true;
-    }catch(e){ return false; }
+    if(!availW || !availH) return false;            // pane not laid out yet
+    const scale = availH / nativeH;
+    const logicalW = Math.max(1, Math.round(availW / scale));
+    f.style.width = logicalW+'px';
+    f.style.height = nativeH+'px';
+    f.style.transform = 'scale('+scale+')';
+    return true;
   }
-  function fitFrameTall(pane){
-    let t=0; (function go(){ if(fillTall(pane)) return; if(t++<60) setTimeout(go,150); })();
+  function fitFrameSoon(pane){
+    let t=0; (function go(){ if(fitFrame(pane)) return; if(t++<60) setTimeout(go,150); })();
+  }
+  function addExpandButton(pane){
+    const exp = document.createElement('button');
+    exp.className = 'fig-expand'; exp.type = 'button'; exp.title = 'Ampliar gráfico';
+    exp.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3H4v5M15 3h5v5M9 21H4v-5M15 21h5v-5"/></svg>Ampliar';
+    exp.addEventListener('click', ()=> openLightbox(pane));
+    pane.appendChild(exp);
   }
   function loadFigures(s, resize){
-    s.querySelectorAll('.figpane[data-src]').forEach(pane=>{
-      const tall = pane.hasAttribute('data-tall');
-      let f = pane.querySelector('iframe');
-      if(!f){
-        f = document.createElement('iframe');
-        f.title = 'Gráfico interactivo';
-        f.src = pane.dataset.src;
-        const cap = pane.querySelector('.figcap');
-        const ld = pane.querySelector('.loading');
-        if(tall){
-          const wrap = document.createElement('div');
-          wrap.className = 'figframe';
-          wrap.appendChild(f);
-          pane.insertBefore(wrap, cap || null);
-          f.addEventListener('load', ()=>{ if(ld) ld.style.display='none'; fitFrameTall(pane); });
-        } else {
-          pane.insertBefore(f, cap || null);
-          f.addEventListener('load', ()=>{ if(ld) ld.style.display='none'; fitFrame(f); });
+    s.querySelectorAll('.figpane[data-src], .figpane[data-img]').forEach(pane=>{
+      const ld = pane.querySelector('.loading');
+      const cap = pane.querySelector('.figcap');
+      // static-image figure (e.g. the correlation matrix, whose static design
+      // shows the per-variable distributions on the diagonal)
+      if(pane.hasAttribute('data-img')){
+        if(!pane.querySelector('.figstatic')){
+          const img = document.createElement('img');
+          img.className = 'figstatic'; img.alt = 'Gráfico';
+          img.addEventListener('load', ()=>{ if(ld) ld.style.display='none'; });
+          pane.insertBefore(img, cap || null);
+          img.src = pane.dataset.img;
+          addExpandButton(pane);
         }
-      } else if(resize){ tall ? fitFrameTall(pane) : fitFrame(f); }
+        return;
+      }
+      // interactive Plotly figure inside a scaled iframe
+      let wrap = pane.querySelector('.figframe');
+      if(!wrap){
+        const f = document.createElement('iframe');
+        f.title = 'Gráfico interactivo';
+        wrap = document.createElement('div');
+        wrap.className = 'figframe';
+        wrap.appendChild(f);
+        pane.insertBefore(wrap, cap || null);
+        f.addEventListener('load', ()=>{ if(ld) ld.style.display='none'; fitFrameSoon(pane); });
+        f.src = pane.dataset.src;   // set src after the load listener is attached
+        addExpandButton(pane);
+      }
+      if(resize) fitFrameSoon(pane);
     });
   }
+
+  // ---------- figure lightbox (enlarge any chart, fully interactive) ----------
+  const lb = document.getElementById('lightbox');
+  const lbFrame = document.getElementById('lbFrame');
+  const lbCap = document.getElementById('lbCap');
+  let lbNativeH = 600;
+  function sizeLb(){
+    const f = lbFrame.querySelector('iframe');
+    if(!f) return false;
+    const availW = lbFrame.clientWidth, availH = lbFrame.clientHeight;
+    if(!availW || !availH) return false;
+    const scale = availH / lbNativeH;
+    const logicalW = Math.max(1, Math.round(availW / scale));
+    f.style.width = logicalW+'px'; f.style.height = lbNativeH+'px';
+    f.style.transform = 'scale('+scale+')';
+    return true;
+  }
+  function sizeLbSoon(){ let t=0; (function go(){ if(sizeLb()) return; if(t++<60) setTimeout(go,120); })(); }
+  function openLightbox(pane){
+    const capEl = pane.querySelector('.figcap');
+    lbCap.innerHTML = capEl ? capEl.innerHTML : '';
+    lbFrame.querySelectorAll('iframe, img').forEach(n=>n.remove());
+    const ld = lbFrame.querySelector('.lb-loading');
+    if(ld) ld.style.display = '';
+    if(pane.hasAttribute('data-img')){
+      // static figure: object-fit:contain handles sizing, no scaling needed
+      const img = document.createElement('img');
+      img.alt = 'Gráfico ampliado';
+      img.addEventListener('load', ()=>{ if(ld) ld.style.display='none'; });
+      lbFrame.appendChild(img);
+      img.src = pane.dataset.img;
+    } else {
+      lbNativeH = parseInt(pane.dataset.tall,10) || 600;
+      const f = document.createElement('iframe');
+      f.title = 'Gráfico ampliado';
+      f.addEventListener('load', ()=>{ if(ld) ld.style.display='none'; sizeLbSoon(); });
+      lbFrame.appendChild(f);
+      f.src = pane.dataset.src;
+      sizeLbSoon();
+    }
+    lb.classList.add('open'); lb.setAttribute('aria-hidden','false');
+  }
+  function closeLightbox(){
+    lb.classList.remove('open'); lb.setAttribute('aria-hidden','true');
+    lbFrame.querySelectorAll('iframe, img').forEach(n=>n.remove());
+  }
+  document.getElementById('lbClose').onclick = closeLightbox;
+  lb.addEventListener('click', e=>{ if(e.target===lb) closeLightbox(); });
+  window.addEventListener('resize', ()=>{ if(lb.classList.contains('open')) sizeLbSoon(); });
 
   function show(n){
     n = Math.max(0, Math.min(total-1, n));
@@ -802,6 +900,7 @@
   next.onclick = ()=>show(i+1);
 
   document.addEventListener('keydown', e=>{
+    if(lb.classList.contains('open')){ if(e.key==='Escape') closeLightbox(); return; }
     if(ovEl.classList.contains('open')){ if(e.key==='Escape') toggleOv(false); return; }
     switch(e.key){
       case 'ArrowRight': case 'PageDown': case ' ': e.preventDefault(); show(i+1); break;

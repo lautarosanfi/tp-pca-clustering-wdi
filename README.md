@@ -3,7 +3,7 @@
 Trabajo final de **Análisis Multivariado y Descubrimiento de Patrones**  
 Licenciatura en Ciencia de Datos, Universidad Austral.
 
-Integrantes: **Benjamin Miles Roullón, Bernardo Di Rienzo y Lautaro Sanfilippo**.  
+Integrantes: **Benjamin Miles Rouillón, Bernardo Di Rienzo y Lautaro Sanfilippo**.  
 Fecha de entrega: **9 de junio de 2026**.
 
 ## Resumen
